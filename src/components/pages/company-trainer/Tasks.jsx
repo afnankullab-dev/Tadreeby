@@ -2,13 +2,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
+  ArrowUpRight,
   Calendar,
   CheckCircle2,
+  ClipboardCheck,
   ClipboardList,
   Clock3,
   FileText,
   Plus,
   Search,
+  Sparkles,
   UserRound,
   XCircle,
 } from "lucide-react";
@@ -93,6 +96,7 @@ function StatusBadge({ status }) {
   const normalized = String(status || "TODO").toUpperCase();
   const meta = STATUS_META[normalized] || STATUS_META.TODO;
   const Icon = meta.icon;
+
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold"
@@ -104,13 +108,12 @@ function StatusBadge({ status }) {
   );
 }
 
-function TaskCard({ task, onOpen }) {
+function TaskCard({ task }) {
   const overdue = isOverdue(task);
+
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(task)}
-      className="w-full rounded-[18px] border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    <div
+      className="group rounded-[20px] border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"
       style={{ borderColor: COLORS.border }}
     >
       <div className="flex items-start justify-between gap-4">
@@ -130,7 +133,8 @@ function TaskCard({ task, onOpen }) {
             {task.description || "No description provided."}
           </p>
         </div>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F5F7FB] text-[#7B8497]">
+
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5F7FB] text-[#7B8497] transition group-hover:bg-[#EAF3FF] group-hover:text-[#0475FB]">
           <FileText size={17} />
         </div>
       </div>
@@ -151,7 +155,27 @@ function TaskCard({ task, onOpen }) {
           </span>
         </div>
       </div>
-    </button>
+    </div>
+  );
+}
+
+function OverviewCard({ icon: Icon, label, value, description, className, iconClassName, valueClassName }) {
+  return (
+    <div className={`relative overflow-hidden rounded-[22px] border p-5 shadow-sm ${className}`}>
+      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/20 blur-2xl" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] opacity-80">{label}</p>
+          <p className={`mt-2 text-[32px] font-extrabold leading-none tracking-[-1px] ${valueClassName || ""}`}>
+            {value}
+          </p>
+          <p className="mt-2 max-w-[190px] text-[10px] font-medium leading-4 opacity-80">{description}</p>
+        </div>
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/25 ${iconClassName || ""}`}>
+          <Icon size={20} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -194,28 +218,40 @@ export default function Tasks() {
 
   const filteredTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
+
     return tasks.filter((task) => {
-      const matchesStatus = statusFilter === "ALL" || String(task.status || "TODO").toUpperCase() === statusFilter;
+      const matchesStatus =
+        statusFilter === "ALL" || String(task.status || "TODO").toUpperCase() === statusFilter;
       if (!matchesStatus) return false;
       if (!query) return true;
-      const haystack = [task.title, task.description, getTaskName(task), getInternshipName(task)].filter(Boolean).join(" ").toLowerCase();
+
+      const haystack = [
+        task.title,
+        task.description,
+        getTaskName(task),
+        getInternshipName(task),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
       return haystack.includes(query);
     });
   }, [tasks, search, statusFilter]);
 
   const counts = useMemo(() => {
     const result = { total: tasks.length, TODO: 0, IN_PROGRESS: 0, DONE: 0 };
+
     tasks.forEach((task) => {
       const status = String(task.status || "TODO").toUpperCase();
       if (status === "COMPLETED") result.DONE += 1;
       else if (result[status] !== undefined) result[status] += 1;
     });
+
     return result;
   }, [tasks]);
 
-  const openTask = (task) => {
-    if (task?.id) navigate(`/company/trainer/tasks/${task.id}`);
-  };
+  const completionRate = counts.total ? Math.round((counts.DONE / counts.total) * 100) : 0;
 
   return (
     <div className="relative flex h-screen w-full overflow-hidden bg-gradient-to-b from-[#F2F7FF] via-[#F8FAFC] to-[#FFF8F4] font-['Inter']">
@@ -248,10 +284,16 @@ export default function Tasks() {
 
           <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#7B8497]">Task Management</p>
-              <h1 className="mt-1 text-[25px] font-extrabold tracking-[-0.6px] text-[#172033]">Tasks</h1>
-              <p className="mt-1.5 text-[13px] font-medium text-[#7B8497]">Create, assign, and track tasks for your trainees.</p>
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0475FB]">
+                <Sparkles size={14} />
+                Task Management
+              </div>
+              <h1 className="mt-1 text-[27px] font-extrabold tracking-[-0.7px] text-[#172033]">Tasks</h1>
+              <p className="mt-1.5 text-[13px] font-medium text-[#7B8497]">
+                A quick view of trainee progress, completed work, and items waiting for review.
+              </p>
             </div>
+
             <Button
               variant="gold"
               onClick={() => navigate("/company/trainer/tasks/create")}
@@ -269,75 +311,149 @@ export default function Tasks() {
             </div>
           )}
 
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {[
-              ["Total Tasks", counts.total, COLORS.primary, COLORS.primarySoft],
-              ["To Do", counts.TODO, COLORS.primary, COLORS.primarySoft],
-              ["In Progress", counts.IN_PROGRESS, COLORS.accent, COLORS.accentSoft],
-              ["Completed", counts.DONE, COLORS.green, COLORS.greenSoft],
-            ].map(([label, value, color, bg]) => (
-              <div key={label} className="rounded-[18px] border bg-white p-4 shadow-sm" style={{ borderColor: COLORS.border }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7B8497]">{label}</p>
-                <p className="mt-1 text-[21px] font-extrabold" style={{ color }}>{loading ? "—" : value}</p>
-                <div className="mt-2 h-1.5 rounded-full" style={{ backgroundColor: bg }} />
-              </div>
-            ))}
-          </div>
+          {/* Modern progress overview: replaces the old To Do / In Progress / Completed counters. */}
+          <section className="mt-6 grid gap-3 lg:grid-cols-[1.2fr_0.9fr_0.9fr]">
+            <div className="relative overflow-hidden rounded-[22px] bg-[#0475FB] p-5 text-white shadow-lg shadow-blue-500/10">
+              <div className="absolute -right-16 -top-20 h-44 w-44 rounded-full border-[28px] border-white/10" />
+              <div className="relative flex items-center justify-between gap-5">
+                <div>
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white/75">
+                    <ClipboardList size={14} />
+                    Task Overview
+                  </div>
+                  <p className="mt-3 text-[35px] font-extrabold leading-none tracking-[-1px]">
+                    {loading ? "—" : counts.total}
+                  </p>
+                  <p className="mt-2 text-[11px] font-medium text-white/75">Total tasks assigned to your trainees</p>
+                </div>
 
-          <div className="mt-5 rounded-[18px] border bg-white p-4 shadow-sm" style={{ borderColor: COLORS.border }}>
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <div
+                    className="absolute inset-1 rounded-full"
+                    style={{
+                      background: `conic-gradient(#ffffff ${completionRate * 3.6}deg, rgba(255,255,255,.16) 0deg)`,
+                    }}
+                  />
+                  <div className="relative flex h-[74px] w-[74px] flex-col items-center justify-center rounded-full bg-[#0475FB]">
+                    <span className="text-[18px] font-extrabold">{loading ? "—" : `${completionRate}%`}</span>
+                    <span className="text-[8px] font-bold text-white/65">completed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <OverviewCard
+              icon={CheckCircle2}
+              label="Done by Students"
+              value={loading ? "—" : counts.DONE}
+              description="Tasks marked completed by trainees."
+              className="border-[#BDE8CC] bg-[#22C55E] text-white"
+            />
+
+            <OverviewCard
+              icon={ClipboardCheck}
+              label="Under Review"
+              value={loading ? "—" : counts.DONE}
+              description="Completed tasks ready for trainer review."
+              className="border-[#FFD9AE] bg-[#FFAD4E] text-white"
+            />
+          </section>
+
+          <div className="mt-5 rounded-[20px] border bg-white p-4 shadow-sm" style={{ borderColor: COLORS.border }}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="relative w-full lg:max-w-[360px]">
+              <div className="relative w-full lg:max-w-[390px]">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA3B2]" />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search tasks..."
-                  className="h-10 w-full rounded-xl border bg-[#FAFBFD] pl-9 pr-3 text-[11px] outline-none transition focus:border-[#0475FB]"
+                  placeholder="Search tasks, students, internships..."
+                  className="h-10 w-full rounded-xl border bg-[#FAFBFD] pl-9 pr-3 text-[11px] font-medium outline-none transition focus:border-[#0475FB]"
                   style={{ borderColor: COLORS.border }}
                 />
               </div>
+
               <div className="flex flex-wrap gap-2">
                 {["ALL", "TODO", "IN_PROGRESS", "DONE"].map((status) => (
                   <button
                     key={status}
                     type="button"
                     onClick={() => setStatusFilter(status)}
-                    className={`rounded-full px-3 py-2 text-[10px] font-bold transition ${statusFilter === status ? "bg-[#0475FB] text-white" : "bg-[#F5F7FB] text-[#7B8497] hover:bg-[#EAF3FF]"}`}
+                    className={`rounded-full px-3 py-2 text-[10px] font-bold transition ${
+                      statusFilter === status
+                        ? "bg-[#0475FB] text-white shadow-sm"
+                        : "bg-[#F5F7FB] text-[#7B8497] hover:bg-[#EAF3FF] hover:text-[#0475FB]"
+                    }`}
                   >
-                    {status === "ALL" ? "All" : status === "TODO" ? "To Do" : status === "IN_PROGRESS" ? "In Progress" : "Completed"}
+                    {status === "ALL"
+                      ? "All"
+                      : status === "TODO"
+                        ? "To Do"
+                        : status === "IN_PROGRESS"
+                          ? "In Progress"
+                          : "Completed"}
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="mt-5 pb-8">
+          <div className="mt-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-[15px] font-extrabold text-[#172033]">Recent Tasks</h2>
+              <p className="mt-1 text-[10px] font-medium text-[#7B8497]">
+                {loading ? "Loading tasks..." : `${filteredTasks.length} task${filteredTasks.length === 1 ? "" : "s"} shown`}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("ALL")}
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0475FB] hover:underline"
+            >
+              View all
+              <ArrowUpRight size={13} />
+            </button>
+          </div>
+
+          <div className="mt-3 pb-8">
             {loading ? (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {[1, 2, 3, 4].map((item) => (
-                  <div key={item} className="h-48 animate-pulse rounded-[18px] border bg-white" style={{ borderColor: COLORS.border }} />
+                  <div
+                    key={item}
+                    className="h-48 animate-pulse rounded-[20px] border bg-white"
+                    style={{ borderColor: COLORS.border }}
+                  />
                 ))}
               </div>
             ) : filteredTasks.length === 0 ? (
-              <div className="rounded-[18px] border bg-white px-6 py-14 text-center shadow-sm" style={{ borderColor: COLORS.border }}>
+              <div className="rounded-[20px] border bg-white px-6 py-14 text-center shadow-sm" style={{ borderColor: COLORS.border }}>
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EAF3FF] text-[#0475FB]">
                   <ClipboardList size={22} />
                 </div>
                 <h2 className="mt-4 text-[15px] font-extrabold text-[#172033]">
                   {tasks.length === 0 ? "No tasks yet" : "No matching tasks"}
                 </h2>
-                <p className="mx-auto mt-1 max-w-[420px] text-[11px] leading-5 text-[#7B8497]">
-                  {tasks.length === 0 ? "Create your first task and assign it to a trainee." : "Try another search term or status filter."}
+                <p className="mx-auto mt-1.5 max-w-sm text-[11px] leading-5 text-[#7B8497]">
+                  {tasks.length === 0
+                    ? "Create the first task and start tracking your trainees' progress."
+                    : "Try another search or change the status filter."}
                 </p>
                 {tasks.length === 0 && (
-                  <Button variant="gold" onClick={() => navigate("/company/trainer/tasks/create")} className="mt-5 inline-flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold">
-                    <Plus size={15} /> Create Task
+                  <Button
+                    variant="gold"
+                    onClick={() => navigate("/company/trainer/tasks/create")}
+                    className="mt-5 px-4 py-2.5 text-[11px] font-bold"
+                  >
+                    <Plus size={15} className="mr-1.5 inline" />
+                    Create your first task
                   </Button>
                 )}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                {filteredTasks.map((task) => <TaskCard key={task.id} task={task} onOpen={openTask} />)}
+                {filteredTasks.map((task) => (
+                  <TaskCard key={task.id || `${task.title}-${task.deadline}`} task={task} />
+                ))}
               </div>
             )}
           </div>
