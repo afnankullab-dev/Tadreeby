@@ -32,6 +32,7 @@ import Opportunities from "./components/pages/company-admin/Opportunities";
 import Trainers from "./components/pages/company-admin/Trainers";
 import TrainerDashboard from "./components/pages/company-trainer/TrainerDashboard";
 import CreateTask from "./components/pages/company-trainer/CreateTask";
+import Tasks from "./components/pages/company-trainer/Tasks";
 
 function App() {
   return (
@@ -89,6 +90,7 @@ function App() {
       {/* COMPANY_TRAINER routes */}
       <Route element={<ProtectedRoute allowedRoles={["COMPANY_TRAINER"]} />}>
         <Route path="/company/trainer/dashboard" element={<TrainerDashboard />} />
+        <Route path="/company/trainer/tasks" element={<Tasks />} />
         <Route path="/company/trainer/tasks/create" element={<CreateTask />} />
       </Route>
 
