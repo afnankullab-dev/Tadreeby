@@ -24,17 +24,17 @@ import { Button } from "../../common/Button";
 import { apiRequest } from "../../../services/api";
 
 const COLORS = {
-  primary: "#0475FB",
-  primarySoft: "#EAF3FF",
-  accent: "#FFAD4E",
-  accentSoft: "#FFF4E5",
-  green: "#22C55E",
-  greenSoft: "#EAF9EF",
-  red: "#EF4444",
-  redSoft: "#FEF0F0",
-  text: "#172033",
+  blue: "#0475FB",
+  blueSoft: "#EEF6FF",
+  navy: "#172033",
   muted: "#7B8497",
-  border: "#E9EDF4",
+  border: "#E8ECF2",
+  gold: "#FFAD4E",
+  goldSoft: "#FFF6EA",
+  green: "#2FAE66",
+  greenSoft: "#EEF9F3",
+  red: "#D94A4A",
+  redSoft: "#FFF2F2",
 };
 
 const trainerNavItems = [
@@ -48,8 +48,8 @@ const trainerFooterItems = [
 ];
 
 const STATUS_META = {
-  TODO: { label: "To Do", icon: Clock3, color: COLORS.primary, bg: COLORS.primarySoft },
-  IN_PROGRESS: { label: "In Progress", icon: Clock3, color: COLORS.accent, bg: COLORS.accentSoft },
+  TODO: { label: "To Do", icon: Clock3, color: COLORS.blue, bg: COLORS.blueSoft },
+  IN_PROGRESS: { label: "In Progress", icon: Clock3, color: COLORS.gold, bg: COLORS.goldSoft },
   DONE: { label: "Completed", icon: CheckCircle2, color: COLORS.green, bg: COLORS.greenSoft },
   COMPLETED: { label: "Completed", icon: CheckCircle2, color: COLORS.green, bg: COLORS.greenSoft },
   CANCELLED: { label: "Cancelled", icon: XCircle, color: COLORS.red, bg: COLORS.redSoft },
@@ -108,75 +108,69 @@ function StatusBadge({ status }) {
   );
 }
 
-function TaskCard({ task }) {
+function TaskCard({ task, featured = false, compact = false }) {
   const overdue = isOverdue(task);
 
   return (
-    <div
-      className="group rounded-[20px] border bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+    <article
+      className={`group relative overflow-hidden rounded-[22px] border bg-white shadow-[0_8px_28px_rgba(23,32,51,0.045)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(23,32,51,0.09)] ${
+        featured ? "min-h-[250px] p-6" : compact ? "min-h-[175px] p-4" : "min-h-[215px] p-5"
+      }`}
       style={{ borderColor: COLORS.border }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={task.status} />
-            {overdue && (
-              <span className="rounded-full bg-[#FEF0F0] px-2.5 py-1 text-[10px] font-bold text-[#EF4444]">
-                Overdue
-              </span>
-            )}
+      <div
+        className={`absolute left-0 top-0 w-full ${featured ? "h-1.5" : "h-1"}`}
+        style={{ backgroundColor: overdue ? COLORS.red : task.status === "DONE" || task.status === "COMPLETED" ? COLORS.green : COLORS.blue }}
+      />
+
+      <div className="flex h-full flex-col">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={task.status} />
+              {overdue && (
+                <span className="rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ color: COLORS.red, backgroundColor: COLORS.redSoft }}>
+                  Overdue
+                </span>
+              )}
+            </div>
+            <h3 className={`${featured ? "mt-4 text-[19px]" : "mt-3 text-[15px]"} truncate font-extrabold tracking-[-0.25px]`} style={{ color: COLORS.navy }}>
+              {task.title || "Untitled task"}
+            </h3>
+            <p className={`${featured ? "mt-2 line-clamp-3 text-[12px]" : "mt-1.5 line-clamp-2 text-[11px]"} leading-5`} style={{ color: COLORS.muted }}>
+              {task.description || "No description provided."}
+            </p>
           </div>
-          <h3 className="mt-3 truncate text-[15px] font-extrabold text-[#172033]">
-            {task.title || "Untitled task"}
-          </h3>
-          <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-[#7B8497]">
-            {task.description || "No description provided."}
-          </p>
+
+          <div
+            className={`flex shrink-0 items-center justify-center rounded-2xl transition ${featured ? "h-12 w-12" : "h-10 w-10"}`}
+            style={{ backgroundColor: COLORS.blueSoft, color: COLORS.blue }}
+          >
+            <FileText size={featured ? 20 : 17} />
+          </div>
         </div>
 
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F5F7FB] text-[#7B8497] transition group-hover:bg-[#EAF3FF] group-hover:text-[#0475FB]">
-          <FileText size={17} />
+        <div className="mt-auto grid grid-cols-1 gap-2 border-t pt-4 sm:grid-cols-3" style={{ borderColor: COLORS.border }}>
+          <div className="flex min-w-0 items-center gap-2">
+            <ClipboardList size={13} className="shrink-0" style={{ color: COLORS.muted }} />
+            <span className="truncate text-[10px] font-semibold" style={{ color: COLORS.muted }}>{getInternshipName(task)}</span>
+          </div>
+          <div className="flex min-w-0 items-center gap-2">
+            <UserRound size={13} className="shrink-0" style={{ color: COLORS.muted }} />
+            <span className="truncate text-[10px] font-semibold" style={{ color: COLORS.muted }}>{getTaskName(task)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar size={13} className="shrink-0" style={{ color: COLORS.muted }} />
+            <span className="text-[10px] font-semibold" style={{ color: overdue ? COLORS.red : COLORS.muted }}>{formatDate(task.deadline)}</span>
+          </div>
         </div>
       </div>
-
-      <div className="mt-5 grid grid-cols-1 gap-2 border-t pt-4 sm:grid-cols-3" style={{ borderColor: COLORS.border }}>
-        <div className="flex min-w-0 items-center gap-2">
-          <ClipboardList size={13} className="shrink-0 text-[#9AA3B2]" />
-          <span className="truncate text-[10px] font-semibold text-[#7B8497]">{getInternshipName(task)}</span>
-        </div>
-        <div className="flex min-w-0 items-center gap-2">
-          <UserRound size={13} className="shrink-0 text-[#9AA3B2]" />
-          <span className="truncate text-[10px] font-semibold text-[#7B8497]">{getTaskName(task)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Calendar size={13} className="shrink-0 text-[#9AA3B2]" />
-          <span className={`text-[10px] font-semibold ${overdue ? "text-[#EF4444]" : "text-[#7B8497]"}`}>
-            {formatDate(task.deadline)}
-          </span>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 }
 
-function OverviewCard({ icon: Icon, label, value, description, className, iconClassName, valueClassName }) {
-  return (
-    <div className={`relative overflow-hidden rounded-[22px] border p-5 shadow-sm ${className}`}>
-      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/20 blur-2xl" />
-      <div className="relative flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] opacity-80">{label}</p>
-          <p className={`mt-2 text-[32px] font-extrabold leading-none tracking-[-1px] ${valueClassName || ""}`}>
-            {value}
-          </p>
-          <p className="mt-2 max-w-[190px] text-[10px] font-medium leading-4 opacity-80">{description}</p>
-        </div>
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/25 ${iconClassName || ""}`}>
-          <Icon size={20} />
-        </div>
-      </div>
-    </div>
-  );
+function Overview() {
+  return null;
 }
 
 export default function Tasks() {
@@ -218,45 +212,33 @@ export default function Tasks() {
 
   const filteredTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
-
     return tasks.filter((task) => {
-      const matchesStatus =
-        statusFilter === "ALL" || String(task.status || "TODO").toUpperCase() === statusFilter;
+      const normalizedStatus = String(task.status || "TODO").toUpperCase();
+      const matchesStatus = statusFilter === "ALL" || normalizedStatus === statusFilter;
       if (!matchesStatus) return false;
       if (!query) return true;
-
-      const haystack = [
-        task.title,
-        task.description,
-        getTaskName(task),
-        getInternshipName(task),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(query);
+      return [task.title, task.description, getTaskName(task), getInternshipName(task)]
+        .filter(Boolean).join(" ").toLowerCase().includes(query);
     });
   }, [tasks, search, statusFilter]);
 
   const counts = useMemo(() => {
     const result = { total: tasks.length, TODO: 0, IN_PROGRESS: 0, DONE: 0 };
-
     tasks.forEach((task) => {
       const status = String(task.status || "TODO").toUpperCase();
       if (status === "COMPLETED") result.DONE += 1;
       else if (result[status] !== undefined) result[status] += 1;
     });
-
     return result;
   }, [tasks]);
 
-  const completionRate = counts.total ? Math.round((counts.DONE / counts.total) * 100) : 0;
+  const completedRate = counts.total ? Math.round((counts.DONE / counts.total) * 100) : 0;
+  const underReview = counts.DONE;
 
   return (
-    <div className="relative flex h-screen w-full overflow-hidden bg-gradient-to-b from-[#F2F7FF] via-[#F8FAFC] to-[#FFF8F4] font-['Inter']">
-      <div className="pointer-events-none absolute -left-20 top-1/4 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-20 bottom-1/4 h-96 w-96 rounded-full bg-orange-400/10 blur-3xl" />
+    <div className="relative flex h-screen w-full overflow-hidden bg-[#F8FAFC] font-['Inter']">
+      <div className="pointer-events-none absolute -left-32 top-40 h-72 w-72 rounded-full bg-blue-100/30 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-20 h-80 w-80 rounded-full bg-orange-100/25 blur-3xl" />
 
       <Sidebar
         navItems={trainerNavItems}
@@ -282,177 +264,154 @@ export default function Tasks() {
             notificationBadge={0}
           />
 
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0475FB]">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: COLORS.blue }}>
                 <Sparkles size={14} />
-                Task Management
+                Trainer Workspace
               </div>
-              <h1 className="mt-1 text-[27px] font-extrabold tracking-[-0.7px] text-[#172033]">Tasks</h1>
-              <p className="mt-1.5 text-[13px] font-medium text-[#7B8497]">
-                A quick view of trainee progress, completed work, and items waiting for review.
+              <h1 className="mt-1 text-[28px] font-extrabold tracking-[-0.8px]" style={{ color: COLORS.navy }}>Tasks</h1>
+              <p className="mt-1.5 max-w-[600px] text-[13px] font-medium" style={{ color: COLORS.muted }}>
+                Follow the work your trainees are completing and quickly see what needs your attention.
               </p>
             </div>
-
-            <Button
-              variant="gold"
-              onClick={() => navigate("/company/trainer/tasks/create")}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-bold"
-            >
+            <Button variant="gold" onClick={() => navigate("/company/trainer/tasks/create")} className="flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-bold">
               <Plus size={16} />
               Create Task
             </Button>
           </div>
 
           {error && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-[#F8D5D5] bg-[#FEF7F7] px-4 py-3 text-[10px] text-[#B42318]">
+            <div className="mt-4 flex items-start gap-2 rounded-xl border bg-white px-4 py-3 text-[10px]" style={{ borderColor: "#F4D0D0", color: COLORS.red }}>
               <AlertCircle size={14} className="mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Modern progress overview: replaces the old To Do / In Progress / Completed counters. */}
-          <section className="mt-6 grid gap-3 lg:grid-cols-[1.2fr_0.9fr_0.9fr]">
-            <div className="relative overflow-hidden rounded-[22px] bg-[#0475FB] p-5 text-white shadow-lg shadow-blue-500/10">
-              <div className="absolute -right-16 -top-20 h-44 w-44 rounded-full border-[28px] border-white/10" />
-              <div className="relative flex items-center justify-between gap-5">
+          <section className="mt-6 grid grid-cols-1 gap-3 lg:grid-cols-[1.45fr_0.8fr_0.8fr]">
+            <div className="relative min-h-[190px] overflow-hidden rounded-[24px] bg-[#0475FB] p-6 text-white shadow-[0_16px_35px_rgba(4,117,251,0.14)]">
+              <div className="absolute -right-14 -top-20 h-48 w-48 rounded-full border-[30px] border-white/10" />
+              <div className="absolute bottom-[-55px] right-[25%] h-32 w-32 rounded-full bg-white/5" />
+              <div className="relative flex h-full items-center justify-between gap-5">
                 <div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white/75">
-                    <ClipboardList size={14} />
-                    Task Overview
-                  </div>
-                  <p className="mt-3 text-[35px] font-extrabold leading-none tracking-[-1px]">
-                    {loading ? "—" : counts.total}
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">Overall Progress</p>
+                  <p className="mt-3 text-[42px] font-extrabold leading-none tracking-[-1.5px]">{loading ? "—" : `${completedRate}%`}</p>
+                  <p className="mt-2 max-w-[220px] text-[11px] font-medium leading-5 text-white/70">
+                    {loading ? "Loading task activity..." : `${counts.DONE} of ${counts.total} tasks have been completed.`}
                   </p>
-                  <p className="mt-2 text-[11px] font-medium text-white/75">Total tasks assigned to your trainees</p>
                 </div>
-
-                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white/10">
-                  <div
-                    className="absolute inset-1 rounded-full"
-                    style={{
-                      background: `conic-gradient(#ffffff ${completionRate * 3.6}deg, rgba(255,255,255,.16) 0deg)`,
-                    }}
-                  />
-                  <div className="relative flex h-[74px] w-[74px] flex-col items-center justify-center rounded-full bg-[#0475FB]">
-                    <span className="text-[18px] font-extrabold">{loading ? "—" : `${completionRate}%`}</span>
-                    <span className="text-[8px] font-bold text-white/65">completed</span>
+                <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <div className="absolute inset-1 rounded-full" style={{ background: `conic-gradient(#fff ${completedRate * 3.6}deg, rgba(255,255,255,.13) 0deg)` }} />
+                  <div className="relative flex h-[82px] w-[82px] flex-col items-center justify-center rounded-full bg-[#0475FB]">
+                    <ClipboardCheck size={20} />
+                    <span className="mt-1 text-[9px] font-bold text-white/65">completion</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <OverviewCard
-              icon={CheckCircle2}
-              label="Done by Students"
-              value={loading ? "—" : counts.DONE}
-              description="Tasks marked completed by trainees."
-              className="border-[#BDE8CC] bg-[#22C55E] text-white"
-            />
+            <div className="min-h-[190px] rounded-[24px] border bg-white p-5 shadow-[0_8px_28px_rgba(23,32,51,0.045)]" style={{ borderColor: COLORS.border }}>
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ backgroundColor: COLORS.greenSoft, color: COLORS.green }}>
+                    <CheckCircle2 size={19} />
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: COLORS.muted }}>Student output</span>
+                </div>
+                <div>
+                  <p className="text-[34px] font-extrabold leading-none tracking-[-1px]" style={{ color: COLORS.navy }}>{loading ? "—" : counts.DONE}</p>
+                  <p className="mt-2 text-[11px] font-bold" style={{ color: COLORS.navy }}>Done by students</p>
+                  <p className="mt-1 text-[10px] leading-4" style={{ color: COLORS.muted }}>Work marked complete by trainees.</p>
+                </div>
+              </div>
+            </div>
 
-            <OverviewCard
-              icon={ClipboardCheck}
-              label="Under Review"
-              value={loading ? "—" : counts.DONE}
-              description="Completed tasks ready for trainer review."
-              className="border-[#FFD9AE] bg-[#FFAD4E] text-white"
-            />
+            <div className="min-h-[190px] rounded-[24px] border bg-[#FFFDF9] p-5 shadow-[0_8px_28px_rgba(23,32,51,0.045)]" style={{ borderColor: "#F2E6D4" }}>
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ backgroundColor: COLORS.goldSoft, color: COLORS.gold }}>
+                    <Clock3 size={19} />
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: COLORS.muted }}>Trainer attention</span>
+                </div>
+                <div>
+                  <p className="text-[34px] font-extrabold leading-none tracking-[-1px]" style={{ color: COLORS.navy }}>{loading ? "—" : underReview}</p>
+                  <p className="mt-2 text-[11px] font-bold" style={{ color: COLORS.navy }}>Under review</p>
+                  <p className="mt-1 text-[10px] leading-4" style={{ color: COLORS.muted }}>Completed work ready for trainer review.</p>
+                </div>
+              </div>
+            </div>
           </section>
 
-          <div className="mt-5 rounded-[20px] border bg-white p-4 shadow-sm" style={{ borderColor: COLORS.border }}>
+          <div className="mt-6 rounded-[20px] border bg-white p-4 shadow-[0_6px_22px_rgba(23,32,51,0.035)]" style={{ borderColor: COLORS.border }}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="relative w-full lg:max-w-[390px]">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA3B2]" />
+              <div className="relative w-full lg:max-w-[380px]">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: COLORS.muted }} />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search tasks, students, internships..."
+                  placeholder="Search by task, trainee, or internship..."
                   className="h-10 w-full rounded-xl border bg-[#FAFBFD] pl-9 pr-3 text-[11px] font-medium outline-none transition focus:border-[#0475FB]"
-                  style={{ borderColor: COLORS.border }}
+                  style={{ borderColor: COLORS.border, color: COLORS.navy }}
                 />
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                {["ALL", "TODO", "IN_PROGRESS", "DONE"].map((status) => (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => setStatusFilter(status)}
-                    className={`rounded-full px-3 py-2 text-[10px] font-bold transition ${
-                      statusFilter === status
-                        ? "bg-[#0475FB] text-white shadow-sm"
-                        : "bg-[#F5F7FB] text-[#7B8497] hover:bg-[#EAF3FF] hover:text-[#0475FB]"
-                    }`}
-                  >
-                    {status === "ALL"
-                      ? "All"
-                      : status === "TODO"
-                        ? "To Do"
-                        : status === "IN_PROGRESS"
-                          ? "In Progress"
-                          : "Completed"}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-1.5">
+                {["ALL", "TODO", "IN_PROGRESS", "DONE"].map((status) => {
+                  const active = statusFilter === status;
+                  return (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setStatusFilter(status)}
+                      className="rounded-full px-3 py-2 text-[10px] font-bold transition"
+                      style={{ backgroundColor: active ? COLORS.navy : "#F5F7FA", color: active ? "#fff" : COLORS.muted }}
+                    >
+                      {status === "ALL" ? "All Tasks" : status === "TODO" ? "To Do" : status === "IN_PROGRESS" ? "In Progress" : "Completed"}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          <div className="mt-5 flex items-center justify-between">
+          <div className="mt-6 flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-extrabold text-[#172033]">Recent Tasks</h2>
-              <p className="mt-1 text-[10px] font-medium text-[#7B8497]">
-                {loading ? "Loading tasks..." : `${filteredTasks.length} task${filteredTasks.length === 1 ? "" : "s"} shown`}
-              </p>
+              <h2 className="text-[16px] font-extrabold" style={{ color: COLORS.navy }}>Recent Tasks</h2>
+              <p className="mt-1 text-[10px] font-medium" style={{ color: COLORS.muted }}>{filteredTasks.length} task{filteredTasks.length === 1 ? "" : "s"} shown</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setStatusFilter("ALL")}
-              className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0475FB] hover:underline"
-            >
-              View all
-              <ArrowUpRight size={13} />
+            <button type="button" onClick={() => setStatusFilter("ALL")} className="flex items-center gap-1 text-[10px] font-bold" style={{ color: COLORS.blue }}>
+              View all <ArrowUpRight size={13} />
             </button>
           </div>
 
-          <div className="mt-3 pb-8">
+          <div className="mt-3 pb-10">
             {loading ? (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                {[1, 2, 3, 4].map((item) => (
-                  <div
-                    key={item}
-                    className="h-48 animate-pulse rounded-[20px] border bg-white"
-                    style={{ borderColor: COLORS.border }}
-                  />
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className={`${item === 1 ? "lg:col-span-2 h-60" : "h-52"} animate-pulse rounded-[22px] border bg-white`} style={{ borderColor: COLORS.border }} />
                 ))}
               </div>
             ) : filteredTasks.length === 0 ? (
-              <div className="rounded-[20px] border bg-white px-6 py-14 text-center shadow-sm" style={{ borderColor: COLORS.border }}>
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EAF3FF] text-[#0475FB]">
-                  <ClipboardList size={22} />
+              <div className="rounded-[22px] border bg-white px-6 py-16 text-center shadow-[0_8px_28px_rgba(23,32,51,0.04)]" style={{ borderColor: COLORS.border }}>
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl" style={{ backgroundColor: COLORS.blueSoft, color: COLORS.blue }}>
+                  <ClipboardList size={24} />
                 </div>
-                <h2 className="mt-4 text-[15px] font-extrabold text-[#172033]">
-                  {tasks.length === 0 ? "No tasks yet" : "No matching tasks"}
-                </h2>
-                <p className="mx-auto mt-1.5 max-w-sm text-[11px] leading-5 text-[#7B8497]">
-                  {tasks.length === 0
-                    ? "Create the first task and start tracking your trainees' progress."
-                    : "Try another search or change the status filter."}
+                <h2 className="mt-4 text-[16px] font-extrabold" style={{ color: COLORS.navy }}>{tasks.length === 0 ? "No tasks yet" : "No matching tasks"}</h2>
+                <p className="mx-auto mt-1.5 max-w-[420px] text-[11px] leading-5" style={{ color: COLORS.muted }}>
+                  {tasks.length === 0 ? "Create your first task and start tracking trainee progress." : "Try a different search term or status filter."}
                 </p>
                 {tasks.length === 0 && (
-                  <Button
-                    variant="gold"
-                    onClick={() => navigate("/company/trainer/tasks/create")}
-                    className="mt-5 px-4 py-2.5 text-[11px] font-bold"
-                  >
-                    <Plus size={15} className="mr-1.5 inline" />
-                    Create your first task
+                  <Button variant="gold" onClick={() => navigate("/company/trainer/tasks/create")} className="mt-5 px-4 py-2 text-[11px] font-bold">
+                    <span className="flex items-center gap-1.5"><Plus size={14} /> Create your first task</span>
                   </Button>
                 )}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                {filteredTasks.map((task) => (
-                  <TaskCard key={task.id || `${task.title}-${task.deadline}`} task={task} />
+                {filteredTasks.map((task, index) => (
+                  <div key={task.id || `${task.title}-${index}`} className={index === 0 ? "lg:col-span-2" : ""}>
+                    <TaskCard task={task} featured={index === 0} compact={index === 3 || index === 4} />
+                  </div>
                 ))}
               </div>
             )}
