@@ -29,6 +29,7 @@ import Opportunities from "./components/pages/company-admin/Opportunities";
 import Trainers from "./components/pages/company-admin/Trainers";
 import TrainerDashboard from "./components/pages/company-trainer/TrainerDashboard";
 import TrainerStudents from "./components/pages/company-trainer/TrainerStudents";
+import TrainerStudentDetails from "./components/pages/company-trainer/TrainerStudentDetails";
 import TrainerTasks from "./components/pages/company-trainer/TrainerTasks";
 import TrainerApplications from "./components/pages/company-trainer/TrainerApplications";
 
@@ -83,6 +84,7 @@ function App() {
     <Route element={<ProtectedRoute allowedRoles={["COMPANY_TRAINER"]} />}>
       <Route path="/company/trainer/dashboard" element={<TrainerDashboard />} />
       <Route path="/company/trainer/students" element={<TrainerStudents />} />
+      <Route path="/company/trainer/students/:id" element={<TrainerStudentDetails />} />
       <Route path="/company/trainer/tasks" element={<TrainerTasks />} />
       <Route path="/company/trainer/applications" element={<TrainerApplications />} />
     </Route>
