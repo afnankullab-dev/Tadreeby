@@ -20,6 +20,10 @@ import {
   MessageCircle,
   ListTodo,
   UserRound,
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  CalendarCheck2,
 } from "lucide-react";
 import Sidebar from "../../layout/Sidebar";
 import { useAuth } from "../../../context/AuthContext";
@@ -36,6 +40,20 @@ const COLORS = {
   border: "#E9EDF4",
   background: "#F5F7FB",
 };
+
+const trainerNavGroups = [
+  {
+    label: "Management",
+    items: [
+      { label: "Dashboard", icon: LayoutDashboard, path: "/company/trainer/dashboard" },
+      { label: "Internship Details", icon: BriefcaseBusiness, path: "/company/trainer/internship" },
+      { label: "My Trainees", icon: Users, path: "/company/trainer/students" },
+      { label: "Tasks", icon: ListTodo, path: "/company/trainer/tasks" },
+      { label: "Applications", icon: UserCheck, path: "/company/trainer/applications" },
+      { label: "Attendance", icon: CalendarCheck2, path: "/company/trainer/attendance" },
+    ],
+  },
+];
 
 const DUMMY_CHATS = [
   {
@@ -100,14 +118,6 @@ const DUMMY_MESSAGES = [
     isMe: true,
   },
 ];
-
-const getInitials = (name) =>
-  name
-    ?.split(" ")
-    .map((word) => word[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() || "U";
 
 export default function TrainerChats() {
   const navigate = useNavigate();
@@ -182,16 +192,14 @@ export default function TrainerChats() {
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ backgroundColor: COLORS.background }}>
       <Sidebar
-        navItems={[
-          { label: "Dashboard", icon: BriefcaseBusiness, path: "/company/trainer/dashboard" },
-        ]}
+        navGroups={trainerNavGroups}
         footerItems={[
-          { label: "Chat", icon: MessageCircle, path: "/company/trainer/chat" },
           { label: "Settings", icon: Settings, path: "/company/trainer/settings" },
         ]}
         user={trainerUser}
         profilePath="/company/trainer/settings"
         brandPath="/company/trainer/dashboard"
+        chatPath="/company/trainer/chat"
         storageKey="sidebar-company-trainer"
         onSignOut={handleSignOut}
       />
@@ -268,33 +276,29 @@ export default function TrainerChats() {
                 </div>
                 <div>
                   <h2 className="text-[14px] font-extrabold text-[#172033]">{activeChat.name}</h2>
-                  <p className="mt-0.5 text-[10px] font-medium text-[#7B8497]">{activeChat.status === "online" ? "Online" : "Offline"} · {activeChat.role}</p>
+                  <p className="text-[11px] text-gray-400">{activeChat.status === "online" ? "Online" : activeChat.role}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="flex h-8 items-center gap-1.5 rounded-full border border-gray-200 px-3 text-[11px] font-semibold text-gray-600 hover:border-[#0475FB] hover:text-[#0475FB]"><Phone size={13} /> Call</button>
-                <button className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:text-[#0475FB]"><MoreHorizontal size={15} /></button>
+                <button type="button" className="flex h-8 items-center gap-2 rounded-full border border-gray-200 px-3 text-[11px] font-semibold text-gray-600 hover:border-[#0475FB] hover:text-[#0475FB]"><Phone size={14} /> Call</button>
+                <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100"><MoreHorizontal size={17} /></button>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto bg-[#F9FAFD] p-6">
-              <div className="mb-5 text-center"><span className="rounded-full bg-white px-3 py-1 text-[10px] font-semibold text-gray-400 shadow-sm">Today</span></div>
+              <div className="mb-5 text-center text-[10px] font-semibold uppercase tracking-wide text-gray-400">Today</div>
               {messages.length === 0 ? (
-                <div className="flex h-[60%] flex-col items-center justify-center text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#EAF3FF] text-[#0475FB]"><MessageCircle size={22} /></div>
-                  <h3 className="mt-3 text-sm font-extrabold text-[#172033]">No messages yet</h3>
-                  <p className="mt-1 max-w-xs text-[11px] leading-5 text-[#7B8497]">Start a conversation with {activeChat.name}.</p>
-                </div>
+                <div className="flex h-full items-center justify-center text-sm text-gray-400">No messages in this conversation yet.</div>
               ) : (
                 <div className="space-y-3">
                   {messages.map((message) => (
                     <div key={message.id} className={`flex ${message.isMe ? "justify-end" : "justify-start"}`}>
-                      <div className="max-w-[70%]">
-                        <div className={`rounded-2xl px-4 py-2.5 text-[12px] leading-5 ${message.isMe ? "rounded-tr-sm bg-[#0475FB] text-white" : "rounded-tl-sm bg-white text-[#172033] shadow-sm"}`}>
+                      <div className={`max-w-[70%] ${message.isMe ? "items-end" : "items-start"}`}>
+                        <div className={`rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${message.isMe ? "rounded-tr-sm bg-[#0475FB] text-white" : "rounded-tl-sm bg-white text-[#172033] shadow-sm"}`}>
                           {message.text}
                         </div>
                         <div className={`mt-1 flex items-center gap-1 text-[9px] text-gray-400 ${message.isMe ? "justify-end" : "justify-start"}`}>
-                          {message.time}
+                          <span>{message.time}</span>
                           {message.isMe && <CheckCheck size={12} className="text-[#0475FB]" />}
                         </div>
                       </div>
@@ -306,51 +310,49 @@ export default function TrainerChats() {
             </div>
 
             <div className="border-t p-4" style={{ borderColor: COLORS.border }}>
-              <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 focus-within:border-[#0475FB] focus-within:ring-1 focus-within:ring-[#0475FB]">
-                <button className="text-gray-400 hover:text-[#0475FB]"><Paperclip size={17} /></button>
-                <input
+              <div className="flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-2 focus-within:border-[#0475FB]">
+                <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 hover:text-[#0475FB]"><Paperclip size={17} /></button>
+                <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 hover:text-[#0475FB]"><ImageIcon size={17} /></button>
+                <textarea
                   value={newMessage}
                   onChange={(event) => setNewMessage(event.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={`Message ${activeChat.name}...`}
-                  className="h-8 flex-1 bg-transparent px-1 text-[12px] outline-none"
+                  rows={1}
+                  placeholder="Write a message..."
+                  className="max-h-28 min-h-9 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-[13px] outline-none"
                 />
-                <button className="text-gray-400 hover:text-[#0475FB]"><ImageIcon size={17} /></button>
-                <button className="text-gray-400 hover:text-[#0475FB]"><Smile size={17} /></button>
-                <button onClick={handleSendMessage} className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0475FB] text-white transition hover:bg-[#035CC9]"><Send size={15} /></button>
+                <button type="button" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-400 hover:bg-gray-50 hover:text-[#0475FB]"><Smile size={17} /></button>
+                <button type="button" onClick={handleSendMessage} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0475FB] text-white shadow-sm hover:bg-[#035CC9]"><Send size={16} /></button>
               </div>
             </div>
           </div>
 
-          <aside className="hidden w-[280px] shrink-0 border-l xl:block" style={{ borderColor: COLORS.border }}>
-            <div className="flex h-[72px] items-center justify-between border-b px-6" style={{ borderColor: COLORS.border }}>
-              <h3 className="text-[13px] font-extrabold text-[#172033]">Contact info</h3>
-              <MoreHorizontal size={16} className="text-gray-400" />
+          <aside className="hidden w-[280px] shrink-0 border-l p-6 xl:block" style={{ borderColor: COLORS.border }}>
+            <h3 className="text-[13px] font-extrabold text-[#172033]">Trainee information</h3>
+            <div className="mt-5 rounded-2xl border border-[#E9EDF4] p-5 text-center">
+              <img src={activeChat.avatar} alt={activeChat.name} className="mx-auto h-16 w-16 rounded-full object-cover" />
+              <h4 className="mt-3 text-[14px] font-extrabold text-[#172033]">{activeChat.name}</h4>
+              <p className="mt-1 text-[11px] text-gray-400">{activeChat.role}</p>
+              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#EAF9EF] px-2.5 py-1 text-[10px] font-semibold text-green-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                {activeChat.status === "online" ? "Online" : "Offline"}
+              </span>
             </div>
-            <div className="p-6">
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5 text-center">
-                <img src={activeChat.avatar} alt={activeChat.name} className="mx-auto h-16 w-16 rounded-full object-cover" />
-                <h3 className="mt-3 text-sm font-extrabold text-[#172033]">{activeChat.name}</h3>
-                <p className="mt-1 text-[10px] text-[#7B8497]">{activeChat.role}</p>
-                <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#EAF9EF] px-2.5 py-1 text-[9px] font-semibold text-[#22C55E]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" /> {activeChat.status === "online" ? "Online" : "Offline"}
-                </span>
+            <div className="mt-6 space-y-4">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">Role</p>
+                <p className="mt-1 text-[12px] font-semibold text-[#172033]">{activeChat.role}</p>
               </div>
-
-              <div className="mt-6 space-y-4">
-                <div><p className="text-[9px] font-bold uppercase tracking-wide text-gray-400">Internship</p><p className="mt-1 text-[11px] font-semibold text-[#172033]">Frontend Development Internship</p></div>
-                <div><p className="text-[9px] font-bold uppercase tracking-wide text-gray-400">University</p><p className="mt-1 text-[11px] font-semibold text-[#172033]">Tadreeby University</p></div>
-                <div><p className="text-[9px] font-bold uppercase tracking-wide text-gray-400">Tasks</p><p className="mt-1 text-[11px] font-semibold text-[#172033]">4 assigned · 2 completed</p></div>
-                <div><p className="text-[9px] font-bold uppercase tracking-wide text-gray-400">Attendance</p><p className="mt-1 text-[11px] font-semibold text-[#172033]">92% attendance</p></div>
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">Conversation</p>
+                <p className="mt-1 text-[12px] font-semibold text-[#172033]">Training communication</p>
               </div>
-
-              <button onClick={() => navigate(`/company/trainer/students/${activeChat.id}`)} className="mt-7 flex w-full items-center justify-between rounded-xl border border-gray-200 px-3 py-2.5 text-[11px] font-bold text-[#172033] hover:border-[#0475FB] hover:text-[#0475FB]">
-                View trainee profile <ChevronRight size={14} />
-              </button>
             </div>
+            <button type="button" onClick={() => navigate("/company/trainer/students")} className="mt-6 flex w-full items-center justify-between rounded-xl bg-[#EAF3FF] px-4 py-3 text-[11px] font-semibold text-[#0475FB] hover:bg-[#DDEEFF]">
+              View trainee <ChevronRight size={14} />
+            </button>
           </aside>
         </div>
-        <p className="px-1 pt-2 text-[10px] text-[#98A1B0]">Chat is currently a frontend demo using dummy conversations and messages; it is not connected to the backend.</p>
       </main>
     </div>
   );
