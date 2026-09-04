@@ -1,459 +1,51 @@
-// src/components/pages/company-trainer/TrainerDashboard.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { AlertCircle, Bell, Building2, CheckCircle2, ClipboardList, Clock3, GraduationCap, MessageCircle, Plus, RefreshCw, UserCheck, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  ClipboardList,
-  UserCheck,
-  Building2,
-  GraduationCap,
-  Plus,
-  Check,
-  X,
-  AlertCircle,
-  ArrowUpRight,
-  Settings,
-  Clock3,
-} from "lucide-react";
-
 import Sidebar from "../../layout/Sidebar";
-import PageHeader from "../../common/pagesAssets/PageHeader";
 import { useAuth } from "../../../context/AuthContext";
 import { useToast } from "../../../context/ToastContext";
-import { Button } from "../../common/Button";
 import { trainerAPI } from "../../../services/api";
 
-// ─── Design Tokens (shared palette, see SKILL.md) ─────────────────
-const COLORS = {
-  primary: "#0475FB",
-  primaryDark: "#035CC9",
-  primarySoft: "#EAF3FF",
-  accent: "#FFAD4E",
-  accentSoft: "#FFF4E5",
-  green: "#22C55E",
-  greenSoft: "#EAF9EF",
-  red: "#EF4444",
-  redSoft: "#FEF0F0",
-  purple: "#8B5CF6",
-  purpleSoft: "#F2EDFF",
-  text: "#172033",
-  muted: "#7B8497",
-  border: "#E9EDF4",
-  background: "#F5F7FB",
-};
-
-// ─── Navigation ─────────────────────────────────────────────────
-const trainerNavItems = [
-  {
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    path: "/company/trainer/dashboard",
-  },
-  { label: "My Students", icon: Users, path: "/company/trainer/students" },
+const BORDER = "#E9EDF4";
+const MUTED = "#7B8497";
+const navItems = [
+  { label: "Dashboard", icon: () => <span>▦</span>, path: "/company/trainer/dashboard" },
+  { label: "Trainees", icon: Users, path: "/company/trainer/students" },
   { label: "Tasks", icon: ClipboardList, path: "/company/trainer/tasks" },
-  {
-    label: "Applications",
-    icon: UserCheck,
-    path: "/company/trainer/applications",
-  },
+  { label: "Applications", icon: UserCheck, path: "/company/trainer/applications" },
 ];
-const trainerFooterItems = [
-  { label: "Settings", icon: Settings, path: "/company/trainer/settings" },
-];
+const getName = (item) => `${item?.student?.user?.firstName || ""} ${item?.student?.user?.lastName || ""}`.trim() || "Student";
+const normalize = (r) => r?.data || r || [];
 
-// ─── Stat Card ──────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, color, bg, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={!onClick}
-    className="rounded-[18px] border bg-white p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-default"
-    style={{ borderColor: COLORS.border }}
-  >
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#7B8497]">
-          {label}
-        </p>
-        <p className="mt-1 text-[21px] font-extrabold text-[#172033]">
-          {value}
-        </p>
-      </div>
-      <div className="rounded-full p-2" style={{ backgroundColor: bg }}>
-        <Icon size={17} strokeWidth={1.8} style={{ color }} />
-      </div>
-    </div>
-  </button>
-);
-
-// ─── Pending Applications Card ─────────────────────────────────
-const PendingApplicationsCard = ({
-  applications,
-  onApprove,
-  onReject,
-  actingId,
-  onViewAll,
-}) => (
-  <div
-    className="rounded-[18px] border bg-white p-5 shadow-sm"
-    style={{ borderColor: COLORS.border }}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-[16px] font-extrabold text-[#172033]">
-          Pending Applications
-        </h3>
-        <p className="mt-1 text-[10px] text-[#7B8497]">
-          Students requesting to join your internship
-        </p>
-      </div>
-      <button
-        onClick={onViewAll}
-        className="text-[10px] font-extrabold text-[#0475FB] hover:underline"
-      >
-        View all
-      </button>
-    </div>
-
-    {applications.length === 0 ? (
-      <div className="mt-6 flex flex-col items-center justify-center py-8 text-center">
-        <UserCheck size={28} className="text-[#C9D0DB]" />
-        <p className="mt-3 text-[12px] font-medium text-[#7B8497]">
-          No pending applications right now
-        </p>
-      </div>
-    ) : (
-      <div className="mt-4 divide-y divide-[#E9EDF4]">
-        {applications.slice(0, 5).map((app) => {
-          const name =
-            `${app.student?.user?.firstName || ""} ${app.student?.user?.lastName || ""}`.trim() ||
-            "Student";
-          const major = app.student?.major || "—";
-          const busy = actingId === app.id;
-          return (
-            <div
-              key={app.id}
-              className="flex items-center justify-between gap-3 py-3 first:pt-1 last:pb-1"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
-                  style={{ backgroundColor: COLORS.primary }}
-                >
-                  {name.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-[12px] font-bold text-[#172033]">
-                    {name}
-                  </p>
-                  <p className="truncate text-[10px] text-[#7B8497]">{major}</p>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => onApprove(app.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EAF9EF] text-[#22C55E] transition hover:bg-[#D6F3DD] disabled:opacity-50"
-                  title="Approve"
-                >
-                  <Check size={14} />
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => onReject(app.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FEF0F0] text-[#EF4444] transition hover:bg-[#FDE1E1] disabled:opacity-50"
-                  title="Reject"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </div>
-);
-
-// ─── My Students Card ───────────────────────────────────────────
-const MyStudentsCard = ({ students, onViewAll }) => (
-  <div
-    className="rounded-[18px] border bg-white p-5 shadow-sm"
-    style={{ borderColor: COLORS.border }}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-[16px] font-extrabold text-[#172033]">
-          My Students
-        </h3>
-        <p className="mt-1 text-[10px] text-[#7B8497]">
-          Interns currently under your supervision
-        </p>
-      </div>
-      <button
-        onClick={onViewAll}
-        className="text-[10px] font-extrabold text-[#0475FB] hover:underline"
-      >
-        View all
-      </button>
-    </div>
-
-    {students.length === 0 ? (
-      <div className="mt-6 flex flex-col items-center justify-center py-8 text-center">
-        <GraduationCap size={28} className="text-[#C9D0DB]" />
-        <p className="mt-3 text-[12px] font-medium text-[#7B8497]">
-          No students assigned yet
-        </p>
-      </div>
-    ) : (
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {students.slice(0, 6).map((s) => {
-          const name =
-            `${s.student?.user?.firstName || ""} ${s.student?.user?.lastName || ""}`.trim() ||
-            "Student";
-          return (
-            <div
-              key={s.id}
-              className="flex items-center gap-3 rounded-xl border border-[#E9EDF4] p-3"
-            >
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
-                style={{ backgroundColor: COLORS.accent }}
-              >
-                {name.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-[12px] font-bold text-[#172033]">
-                  {name}
-                </p>
-                <p className="truncate text-[10px] text-[#7B8497]">
-                  {s.student?.major || "—"}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </div>
-);
-
-// ─── MAIN COMPONENT ─────────────────────────────────────────────
-export default function TrainerDashboard() {
+function Header({ user, name, onLogout, pending }) {
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
-  const { showToast } = useToast();
+  const initials = name.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
+  return <header className="mb-6 flex items-center gap-3"><div className="relative flex-1"><div className="h-11 rounded-full border bg-white px-4 flex items-center text-xs text-[#9AA3B2]" style={{borderColor:BORDER}}>Use the dashboard to find trainees, tasks and pending actions</div></div><button onClick={()=>navigate("/company/trainer/applications")} className="relative hidden h-11 w-11 items-center justify-center rounded-full border bg-white sm:flex" style={{borderColor:BORDER}} title="Applications"><Bell size={18} className="text-[#0475FB]"/>{pending>0&&<span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"/>}</button><button onClick={()=>navigate("/company/trainer/messages")} className="hidden h-11 w-11 items-center justify-center rounded-full border bg-white sm:flex" style={{borderColor:BORDER}} title="Messages"><MessageCircle size={18} className="text-[#0475FB]"/></button><button onClick={()=>navigate("/company/trainer/dashboard")} className="flex items-center gap-2 rounded-full border bg-white py-1.5 pl-1.5 pr-3" style={{borderColor:BORDER}}><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EAF3FF] text-[10px] font-extrabold text-[#0475FB]">{initials}</div><span className="hidden text-xs font-bold sm:block">{name}</span></button></header>;
+}
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [dashboard, setDashboard] = useState(null);
-  const [applications, setApplications] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [actingId, setActingId] = useState(null);
+function Stat({ icon: Icon, label, value, hint, onClick }) {
+  return <button onClick={onClick} className="group rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style={{borderColor:BORDER}}><div className="flex items-start justify-between"><div><p className="text-xs font-semibold text-[#7B8497]">{label}</p><p className="mt-1 text-2xl font-extrabold tracking-tight">{value}</p><p className="mt-1 text-[10px] text-[#9AA3B2]">{hint}</p></div><div className="rounded-xl bg-[#EAF3FF] p-2.5 text-[#0475FB]"><Icon size={18}/></div></div></button>;
+}
 
-  const fullName =
-    `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Trainer";
-  const trainerUser = {
-    name: fullName,
-    role: "Company Trainer",
-    avatar: user?.profileImage || "",
-  };
-
-  const handleSignOut = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [dashboardData, applicationsData, studentsData] = await Promise.all(
-        [
-          trainerAPI.getDashboard(),
-          trainerAPI.getPendingApplications(1, 5),
-          trainerAPI.getMyStudents(1, 6),
-        ],
-      );
-      setDashboard(dashboardData || {});
-      setApplications(applicationsData?.data || applicationsData || []);
-      setStudents(studentsData?.data || studentsData || []);
-    } catch (err) {
-      console.error("Failed to fetch trainer dashboard:", err);
-      setError(err?.message || "Failed to load dashboard data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleApprove = async (applicationId) => {
-    setActingId(applicationId);
-    try {
-      await trainerAPI.approveApplication(applicationId);
-      setApplications((prev) => prev.filter((a) => a.id !== applicationId));
-      showToast("Application approved.", "success");
-      fetchData();
-    } catch (err) {
-      showToast(err?.message || "Failed to approve application.", "error");
-    } finally {
-      setActingId(null);
-    }
-  };
-
-  const handleReject = async (applicationId) => {
-    setActingId(applicationId);
-    try {
-      await trainerAPI.rejectApplication(applicationId);
-      setApplications((prev) => prev.filter((a) => a.id !== applicationId));
-      showToast("Application rejected.", "success");
-    } catch (err) {
-      showToast(err?.message || "Failed to reject application.", "error");
-    } finally {
-      setActingId(null);
-    }
-  };
-
-  const companyName = dashboard?.company?.name || "Your Company";
-  const stats = {
-    students: dashboard?.stats?.totalStudents ?? students.length,
-    pendingApplications:
-      dashboard?.stats?.pendingApplications ?? applications.length,
-    activeTasks: dashboard?.stats?.activeTasks ?? 0,
-    completedTasks: dashboard?.stats?.completedTasks ?? 0,
-  };
-
-  return (
-    <div className="flex h-screen w-full overflow-hidden bg-gradient-to-b from-[#F2F7FF] via-[#F8FAFC] to-[#FFF8F4] font-['Inter'] relative">
-      <div className="pointer-events-none absolute top-1/4 -left-20 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-1/4 -right-20 h-96 w-96 rounded-full bg-orange-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute top-10 right-1/3 h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl" />
-
-      <Sidebar
-        navItems={trainerNavItems}
-        footerItems={trainerFooterItems}
-        user={trainerUser}
-        profilePath="/company/trainer/profile"
-        onSignOut={handleSignOut}
-        chatPath="/company/trainer/chats"
-        brandPath="/company/trainer/dashboard"
-        storageKey="sidebar-company-trainer"
-      />
-
-      <main className="flex-1 overflow-y-auto relative z-10">
-        <div className="mx-auto w-full max-w-[1240px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
-          <PageHeader
-            loading={loading}
-            profile={user}
-            fullName={fullName}
-            studentUser={trainerUser}
-            searchValue=""
-            onSearchChange={() => {}}
-            chatBadge={0}
-            notificationBadge={stats.pendingApplications}
-          />
-
-          {error && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-[#F8D5D5] bg-[#FEF7F7] px-4 py-3 text-[10px] text-[#B42318]">
-              <AlertCircle size={14} className="mt-0.5 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Welcome header */}
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="mb-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#7B8497]">
-                Trainer Dashboard
-              </p>
-              <h1 className="text-[25px] font-extrabold tracking-[-0.6px] text-[#172033]">
-                Welcome back, {fullName.split(" ")[0]}
-              </h1>
-              <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-[#7B8497]">
-                <Building2 size={14} /> {companyName} · Company Trainer
-              </p>
-            </div>
-            <Button
-              variant="gold"
-              onClick={() => navigate("/company/trainer/tasks")}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-bold"
-            >
-              <Plus size={16} strokeWidth={2} />
-              Create Task
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard
-              icon={GraduationCap}
-              label="My Students"
-              value={loading ? "—" : stats.students}
-              color={COLORS.primary}
-              bg={COLORS.primarySoft}
-              onClick={() => navigate("/company/trainer/students")}
-            />
-            <StatCard
-              icon={UserCheck}
-              label="Pending Applications"
-              value={loading ? "—" : stats.pendingApplications}
-              color={COLORS.accent}
-              bg={COLORS.accentSoft}
-              onClick={() => navigate("/company/trainer/applications")}
-            />
-            <StatCard
-              icon={ClipboardList}
-              label="Active Tasks"
-              value={loading ? "—" : stats.activeTasks}
-              color={COLORS.purple}
-              bg={COLORS.purpleSoft}
-              onClick={() => navigate("/company/trainer/tasks")}
-            />
-            <StatCard
-              icon={Clock3}
-              label="Completed Tasks"
-              value={loading ? "—" : stats.completedTasks}
-              color={COLORS.green}
-              bg={COLORS.greenSoft}
-              onClick={() => navigate("/company/trainer/tasks")}
-            />
-          </div>
-
-          {/* Main grid */}
-          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <PendingApplicationsCard
-              applications={applications}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              actingId={actingId}
-              onViewAll={() => navigate("/company/trainer/applications")}
-            />
-            <MyStudentsCard
-              students={students}
-              onViewAll={() => navigate("/company/trainer/students")}
-            />
-          </div>
-
-          <div className="mt-6 flex items-center justify-between border-t border-[#E9EDF4] pt-4 text-[10px] font-medium text-[#7B8497]">
-            <span>
-              Tadreeby helps you manage your interns' training the smart way.
-            </span>
-            <button
-              type="button"
-              onClick={() => navigate("/company/trainer/tasks")}
-              className="flex items-center gap-1 font-extrabold text-[#0475FB] hover:underline"
-            >
-              Go to Tasks <ArrowUpRight size={11} />
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+export default function TrainerDashboard() {
+  const navigate = useNavigate(); const { user, logout } = useAuth(); const { showToast } = useToast();
+  const [dashboard, setDashboard] = useState(null); const [applications, setApplications] = useState([]); const [students, setStudents] = useState([]); const [tasks, setTasks] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
+  const name = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Trainer";
+  const load = async () => { setLoading(true); setError(""); try { const [d,a,s,t] = await Promise.all([trainerAPI.getDashboard(),trainerAPI.getPendingApplications(1,5),trainerAPI.getMyStudents(1,6),trainerAPI.getTasks(1,6)]); setDashboard(d||{}); setApplications(normalize(a)); setStudents(normalize(s)); setTasks(normalize(t)); } catch(e){setError(e?.message||"Unable to load your trainer workspace.");} finally{setLoading(false);} };
+  useEffect(()=>{load();},[]);
+  const stats = dashboard?.stats || {};
+  const activeTasks = stats.activeTasks ?? tasks.filter(t=>!["Completed","Cancelled"].includes(t?.status)).length;
+  const completedTasks = stats.completedTasks ?? tasks.filter(t=>t?.status === "Completed").length;
+  const pending = stats.pendingApplications ?? applications.length;
+  const attention = useMemo(()=>tasks.filter(t=>["Submitted","Under Review"].includes(t?.status)).slice(0,4),[tasks]);
+  const approve = async (id) => { try { await trainerAPI.approveApplication(id); showToast("Application approved.","success"); load(); } catch(e){showToast(e?.message||"Could not approve application.","error");} };
+  const reject = async (id) => { try { await trainerAPI.rejectApplication(id); showToast("Application rejected.","success"); load(); } catch(e){showToast(e?.message||"Could not reject application.","error");} };
+  const signOut = ()=>{logout();navigate("/login")};
+  return <div className="flex min-h-screen w-full bg-[#F5F7FB] font-['Inter'] text-[#172033]"><Sidebar navItems={navItems} footerItems={[]} user={{name,role:"Company Trainer",avatar:user?.profileImage||""}} profilePath="/company/trainer/dashboard" onSignOut={signOut} brandPath="/company/trainer/dashboard" storageKey="sidebar-company-trainer"/><main className="min-w-0 flex-1 overflow-y-auto"><div className="mx-auto max-w-[1240px] px-5 py-5 sm:px-8 lg:px-10"><Header user={user} name={name} onLogout={signOut} pending={pending}/>{error&&<div className="mb-4 flex gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs text-red-700"><AlertCircle size={15}/>{error}</div>}<div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-[#7B8497]">Company training workspace</p><h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">Welcome back, {name.split(" ")[0]}</h1><p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#7B8497]"><Building2 size={15}/> {dashboard?.company?.name || "Your company"} · Company Trainer</p></div><button onClick={()=>navigate("/company/trainer/tasks")} className="flex items-center justify-center gap-2 rounded-xl bg-[#0475FB] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#035CC9]"><Plus size={17}/> Assign a task</button></div>
+      <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4"><Stat icon={GraduationCap} label="Trainees" value={loading?"—":(stats.totalStudents??students.length)} hint="Currently assigned" onClick={()=>navigate("/company/trainer/students")}/><Stat icon={ClipboardList} label="Active tasks" value={loading?"—":activeTasks} hint="Need monitoring" onClick={()=>navigate("/company/trainer/tasks")}/><Stat icon={Clock3} label="Awaiting review" value={loading?"—":attention.length} hint="Submissions to review" onClick={()=>navigate("/company/trainer/tasks")}/><Stat icon={UserCheck} label="Applications" value={loading?"—":pending} hint="Need your decision" onClick={()=>navigate("/company/trainer/applications")}/></section>
+      <div className="mt-6 grid gap-5 xl:grid-cols-[1.35fr_.9fr]"><section className="rounded-2xl border bg-white p-5 shadow-sm" style={{borderColor:BORDER}}><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Needs your attention</h2><p className="mt-1 text-xs text-[#7B8497]">Start with the work that is waiting on you.</p></div><button onClick={()=>navigate("/company/trainer/tasks")} className="text-xs font-bold text-[#0475FB]">View tasks</button></div>{attention.length===0?<div className="mt-7 rounded-xl bg-[#F8FAFC] p-7 text-center"><CheckCircle2 size={27} className="mx-auto text-[#22C55E]"/><p className="mt-2 text-sm font-bold">You're all caught up</p><p className="mt-1 text-xs text-[#7B8497]">No trainee submissions are waiting for review.</p></div>:<div className="mt-4 divide-y">{attention.map(t=><div key={t.id} className="flex items-center gap-3 py-3"><div className="rounded-lg bg-[#FFF4E5] p-2 text-[#D9821B]"><ClipboardList size={16}/></div><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{t?.title||t?.name||"Task submission"}</p><p className="mt-0.5 text-xs text-[#7B8497]">{getName(t)} · {t?.status||"Submitted"}</p></div><button onClick={()=>navigate("/company/trainer/tasks")} className="rounded-lg bg-[#EAF3FF] px-3 py-2 text-[11px] font-bold text-[#0475FB]">Review</button></div>)}</div>}</section>
+      <section className="rounded-2xl border bg-white p-5 shadow-sm" style={{borderColor:BORDER}}><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Pending applications</h2><p className="mt-1 text-xs text-[#7B8497]">Students waiting for your decision.</p></div><button onClick={()=>navigate("/company/trainer/applications")} className="text-xs font-bold text-[#0475FB]">View all</button></div>{applications.length===0?<div className="mt-7 py-7 text-center"><UserCheck size={28} className="mx-auto text-[#C9D0DB]"/><p className="mt-2 text-sm font-bold">No pending applications</p></div>:<div className="mt-4 space-y-3">{applications.slice(0,4).map(a=><div key={a.id} className="rounded-xl border p-3" style={{borderColor:BORDER}}><div className="flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#EAF3FF] text-xs font-extrabold text-[#0475FB]">{getName(a).charAt(0)}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-bold">{getName(a)}</p><p className="truncate text-[10px] text-[#7B8497]">{a?.student?.major||"Major not provided"}</p></div></div><div className="mt-3 grid grid-cols-2 gap-2"><button disabled={loading} onClick={()=>reject(a.id)} className="rounded-lg border border-red-100 py-1.5 text-[10px] font-bold text-red-600 hover:bg-red-50">Reject</button><button disabled={loading} onClick={()=>approve(a.id)} className="rounded-lg bg-[#0475FB] py-1.5 text-[10px] font-bold text-white hover:bg-[#035CC9]">Approve</button></div></div>)}</div>}</section></div>
+      <section className="mt-5 rounded-2xl border bg-white p-5 shadow-sm" style={{borderColor:BORDER}}><div className="flex items-center justify-between"><div><h2 className="font-extrabold">My trainees</h2><p className="mt-1 text-xs text-[#7B8497]">A quick view of the people you supervise.</p></div><button onClick={()=>navigate("/company/trainer/students")} className="text-xs font-bold text-[#0475FB]">Manage trainees</button></div>{students.length===0?<div className="mt-5 rounded-xl bg-[#F8FAFC] p-6 text-center text-xs text-[#7B8497]">No trainees assigned yet.</div>:<div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{students.slice(0,6).map(s=><button key={s.id} onClick={()=>navigate("/company/trainer/students")} className="flex items-center gap-3 rounded-xl border p-3 text-left transition hover:bg-[#F8FAFC]" style={{borderColor:BORDER}}><div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF4E5] text-xs font-extrabold text-[#C87512]">{getName(s).charAt(0)}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-bold">{getName(s)}</p><p className="truncate text-[10px] text-[#7B8497]">{s?.student?.major||"Major not provided"}</p></div><Users size={14} className="text-[#B0B7C3]"/></button>)}</div>}</section>
+      <div className="mt-5 flex items-center justify-between rounded-2xl border bg-white px-5 py-4 text-xs" style={{borderColor:BORDER}}><div className="flex items-center gap-2 text-[#7B8497]"><RefreshCw size={14}/><span>Keep the workflow simple: <b className="text-[#172033]">see → understand → act → confirm.</b></span></div><button onClick={load} className="font-bold text-[#0475FB]">Refresh workspace</button></div>
+    </div></main></div>;
 }
