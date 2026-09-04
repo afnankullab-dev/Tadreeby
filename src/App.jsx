@@ -32,6 +32,7 @@ import TrainerStudents from "./components/pages/company-trainer/TrainerStudents"
 import TrainerTasks from "./components/pages/company-trainer/TrainerTasks";
 import TrainerApplications from "./components/pages/company-trainer/TrainerApplications";
 import TrainerStudentDetails from "./components/pages/company-trainer/TrainerStudentDetails";
+import TrainerAttendance from "./components/pages/company-trainer/TrainerAttendance";
 
 function App() {
   return <Routes>
@@ -87,6 +88,7 @@ function App() {
       <Route path="/company/trainer/students/:id" element={<TrainerStudentDetails />} />
       <Route path="/company/trainer/tasks" element={<TrainerTasks />} />
       <Route path="/company/trainer/applications" element={<TrainerApplications />} />
+      <Route path="/company/trainer/attendance" element={<TrainerAttendance />} />
     </Route>
 
     <Route path="*" element={<NotFoundPage />} />
