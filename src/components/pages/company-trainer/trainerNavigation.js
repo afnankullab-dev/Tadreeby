@@ -5,7 +5,6 @@ import {
   UserCheck,
   CalendarCheck2,
   BriefcaseBusiness,
-  MessageCircle,
   Settings,
 } from "lucide-react";
 
@@ -18,12 +17,15 @@ export const trainerNavItems = [
   { label: "Attendance", icon: CalendarCheck2, path: "/company/trainer/attendance" },
 ];
 
+// Shared trainer sidebar behavior used by every trainer screen.
+// Chat is handled by Sidebar's dedicated chatPath, so it appears in the
+// Personal section instead of becoming a footer item or main navigation item.
 export const trainerSidebarProps = {
   footerItems: [
-    { label: "Chat", icon: MessageCircle, path: "/company/trainer/chat" },
     { label: "Settings", icon: Settings, path: "/company/trainer/settings" },
   ],
   profilePath: "/company/trainer/settings",
+  chatPath: "/company/trainer/chat",
   brandPath: "/company/trainer/dashboard",
   storageKey: "sidebar-company-trainer",
 };
