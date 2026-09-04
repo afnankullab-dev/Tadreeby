@@ -17,18 +17,22 @@ export const DUMMY_TRAINER_APPLICATIONS = [
 ];
 
 export const DUMMY_TRAINER_TASKS = [
-  { id: "dummy-task-1", title: "Build responsive landing page", description: "Create a responsive React landing page based on the provided requirements.", dueDate: "2026-09-10", status: "PENDING", student: DUMMY_TRAINER_STUDENTS[0].student },
-  { id: "dummy-task-2", title: "API integration practice", description: "Connect the frontend form to a REST API and handle loading and error states.", dueDate: "2026-09-12", status: "SUBMITTED", student: DUMMY_TRAINER_STUDENTS[1].student },
-  { id: "dummy-task-3", title: "Code review exercise", description: "Review the assigned component and document improvement suggestions.", dueDate: "2026-09-08", status: "COMPLETED", student: DUMMY_TRAINER_STUDENTS[2].student },
-  { id: "dummy-task-4", title: "Testing checklist", description: "Write a basic checklist for functional and UI testing.", dueDate: "2026-09-15", status: "PENDING", student: DUMMY_TRAINER_STUDENTS[3].student },
+  { id: "dummy-task-1", title: "Company Introduction", description: "Prepare a short introduction about the company and its products.", dueDate: "2026-09-10", status: "PENDING", submittedCount: 22, totalStudents: 24 },
+  { id: "dummy-task-2", title: "Project Proposal", description: "Submit the proposal for the internship project.", dueDate: "2026-09-12", status: "SUBMITTED", submittedCount: 20, totalStudents: 24 },
+  { id: "dummy-task-3", title: "Weekly Report – Week 1", description: "Submit the first weekly internship progress report.", dueDate: "2026-09-05", status: "SUBMITTED", submittedCount: 24, totalStudents: 24 },
+  { id: "dummy-task-4", title: "Weekly Report – Week 2", description: "Submit the second weekly internship progress report.", dueDate: "2026-09-12", status: "SUBMITTED", submittedCount: 18, totalStudents: 24 },
+  { id: "dummy-task-5", title: "Midterm Presentation", description: "Prepare and submit the midterm presentation.", dueDate: "2026-09-20", status: "PENDING", submittedCount: 16, totalStudents: 24 },
+  { id: "dummy-task-6", title: "Final Report", description: "Submit the final internship report.", dueDate: "2026-10-01", status: "PENDING", submittedCount: 10, totalStudents: 24 },
 ];
 
 export const DUMMY_TRAINER_DASHBOARD = {
   company: { name: "Atlas Technologies" },
+  internship: { startDate: "2026-07-20", endDate: "2026-10-07" },
   stats: {
-    totalStudents: DUMMY_TRAINER_STUDENTS.length,
-    pendingApplications: DUMMY_TRAINER_APPLICATIONS.length,
-    activeTasks: 3,
+    totalStudents: 24,
+    pendingApplications: 4,
+    activeTasks: 5,
     completedTasks: 1,
+    attendanceRate: 86.7,
   },
 };
