@@ -8,27 +8,281 @@ import { useAuth } from "../../../context/AuthContext";
 import { useToast } from "../../../context/ToastContext";
 import { trainerAPI } from "../../../services/api";
 
-const navItems=[
- {label:"Dashboard",icon:ClipboardList,path:"/company/trainer/dashboard"},
- {label:"My Students",icon:ClipboardList,path:"/company/trainer/students"},
- {label:"Tasks",icon:ClipboardList,path:"/company/trainer/tasks"},
- {label:"Applications",icon:ClipboardList,path:"/company/trainer/applications"},
+const navItems = [
+  { label: "Dashboard", icon: ClipboardList, path: "/company/trainer/dashboard" },
+  { label: "My Students", icon: ClipboardList, path: "/company/trainer/students" },
+  { label: "Tasks", icon: ClipboardList, path: "/company/trainer/tasks" },
+  { label: "Applications", icon: ClipboardList, path: "/company/trainer/applications" },
 ];
-const getItems=r=>r?.data||r||[];
-export default function TrainerTasks(){
- const navigate=useNavigate(); const {user,logout}=useAuth(); const {showToast}=useToast();
- const [tasks,setTasks]=useState([]),[students,setStudents]=useState([]),[query,setQuery]=useState(""),[status,setStatus]=useState("ALL"),[loading,setLoading]=useState(true),[error,setError]=useState(""),[open,setOpen]=useState(false),[saving,setSaving]=useState(false);
- const [form,setForm]=useState({title:"",description:"",studentId:"",dueDate:""});
- const fullName=`${user?.firstName||""} ${user?.lastName||""}`.trim()||"Trainer";
- const load=async()=>{setLoading(true);setError("");try{const [t,s]=await Promise.all([trainerAPI.getTasks(1,50),trainerAPI.getMyStudents(1,50)]);setTasks(getItems(t));setStudents(getItems(s));}catch(e){setError(e?.message||"Unable to load tasks.");}finally{setLoading(false);}};
- useEffect(()=>{load()},[]);
- const filtered=useMemo(()=>tasks.filter(t=>{const text=`${t.title||""} ${t.description||""}`.toLowerCase(); const matches=text.includes(query.toLowerCase()); const raw=String(t.status||"").toUpperCase(); const matchesStatus=status==="ALL"||raw===status; return matches&&matchesStatus}),[tasks,query,status]);
- const signOut=()=>{logout();navigate("/login")};
- const create=async e=>{e.preventDefault();if(!form.title.trim()||!form.studentId){showToast("Select a trainee and enter a task title.","error");return;}setSaving(true);try{await trainerAPI.createTask({title:form.title.trim(),description:form.description,studentId:form.studentId,dueDate:form.dueDate||undefined});showToast("Task created successfully.","success");setOpen(false);setForm({title:"",description:"",studentId:"",dueDate:""});load();}catch(e){showToast(e?.message||"Failed to create task.","error");}finally{setSaving(false)}};
- return <div className="flex h-screen w-full overflow-hidden bg-[#F7F9FC]"><Sidebar navItems={navItems} footerItems={[]} user={{name:fullName,role:"Company Trainer",avatar:user?.profileImage||""}} profilePath="/company/trainer/profile" chatPath="/company/trainer/chats" onSignOut={signOut} brandPath="/company/trainer/dashboard" storageKey="sidebar-company-trainer"/><main className="flex-1 overflow-y-auto"><div className="mx-auto max-w-[1240px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7"><PageHeader loading={loading} profile={user} fullName={fullName} studentUser={{name:fullName,role:"Company Trainer",avatar:user?.profileImage||""}} searchValue="" onSearchChange={()=>{}} chatBadge={0} notificationBadge={0}/><div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#7B8497]">Work management</p><h1 className="mt-1 text-2xl font-extrabold text-[#172033]">Tasks</h1><p className="mt-1 text-sm text-[#7B8497]">Assign work, track deadlines, and review trainee progress.</p></div><Button variant="gold" onClick={()=>setOpen(true)} className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold"><Plus size={16}/> Create task</Button></div>
- <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]"><div className="relative"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A1A9B8]"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search tasks..." className="h-11 w-full rounded-xl border border-[#E4E8EF] bg-white pl-10 pr-4 text-sm outline-none focus:border-[#0475FB]"/></div><div className="flex gap-2">{["ALL","PENDING","SUBMITTED","COMPLETED"].map(x=><button key={x} onClick={()=>setStatus(x)} className={`rounded-xl px-3 py-2 text-[10px] font-bold ${status===x?"bg-[#172033] text-white":"border border-[#E4E8EF] bg-white text-[#687286]"}`}>{x}</button>)}</div></div>
- {error&&<div className="mt-4 flex gap-2 rounded-xl border border-[#F4D0D0] bg-[#FFF7F7] p-3 text-xs text-[#B42318]"><AlertCircle size={15}/>{error}</div>}
- <div className="mt-5 overflow-hidden rounded-2xl border border-[#E9EDF4] bg-white"><div className="border-b border-[#E9EDF4] px-5 py-4"><h2 className="text-sm font-extrabold text-[#172033]">Task queue</h2><p className="mt-1 text-xs text-[#7B8497]">{loading?"Loading...":`${filtered.length} task${filtered.length===1?"":"s"}`}</p></div>{loading?<div className="space-y-3 p-5">{[1,2,3].map(i=><div key={i} className="h-20 animate-pulse rounded-xl bg-[#F3F5F8]"/>)}</div>:filtered.length===0?<div className="p-12 text-center"><ClipboardList className="mx-auto text-[#C8CFDA]"/><p className="mt-3 text-sm font-bold text-[#596274]">No tasks match your filters</p></div>:<div className="divide-y divide-[#EEF1F5]">{filtered.map(t=>{const student=t.student||t.assignedStudent;const name=`${student?.user?.firstName||""} ${student?.user?.lastName||""}`.trim()||t.studentName||"Trainee";const st=String(t.status||"PENDING").toUpperCase();return <div key={t.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF3FF] text-[#0475FB]"><ClipboardList size={18}/></div><div className="min-w-0 flex-1"><p className="text-sm font-bold text-[#172033]">{t.title||"Untitled task"}</p><p className="mt-1 truncate text-xs text-[#7B8497]">{name}{t.dueDate?` · Due ${new Date(t.dueDate).toLocaleDateString()}`:""}</p></div><span className={`inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold ${st==="COMPLETED"?"bg-[#EAF9EF] text-[#16833A]":st==="SUBMITTED"?"bg-[#FFF4E5] text-[#A45A00]":"bg-[#F1F4F8] text-[#667085]"}`}>{st==="COMPLETED"?<CheckCircle2 size={12}/>:<Clock3 size={12}/>} {st}</span></div>})}</div>}</div>
- {open&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"><form onSubmit={create} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><div><h2 className="text-lg font-extrabold text-[#172033]">Create a task</h2><p className="mt-1 text-xs text-[#7B8497]">Give one trainee a clear, actionable assignment.</p></div><button type="button" onClick={()=>setOpen(false)} className="rounded-lg p-2 hover:bg-[#F4F6F9]"><X size={18}/></button></div><div className="mt-5 space-y-4"><input required value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Task title" className="h-11 w-full rounded-xl border border-[#E4E8EF] px-3 text-sm outline-none focus:border-[#0475FB]"/><textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Description and expectations" rows={4} className="w-full rounded-xl border border-[#E4E8EF] p-3 text-sm outline-none focus:border-[#0475FB]"/><select required value={form.studentId} onChange={e=>setForm({...form,studentId:e.target.value})} className="h-11 w-full rounded-xl border border-[#E4E8EF] px-3 text-sm outline-none focus:border-[#0475FB]"><option value="">Select trainee</option>{students.map(x=>{const s=x.student||x;return <option key={x.id} value={s.id||x.studentId||x.id}>{`${s.user?.firstName||""} ${s.user?.lastName||""}`.trim()||"Trainee"}</option>})}</select><div><label className="mb-1 block text-xs font-bold text-[#596274]">Due date</label><input type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})} className="h-11 w-full rounded-xl border border-[#E4E8EF] px-3 text-sm"/></div></div><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={()=>setOpen(false)} className="rounded-xl px-4 py-2.5 text-xs font-bold text-[#596274]">Cancel</button><Button type="submit" variant="primary" disabled={saving} className="px-4 py-2.5 text-xs font-bold">{saving?"Creating...":"Create task"}</Button></div></form></div>}
- </div></main></div>;
+
+const getItems = (response) => response?.data || response || [];
+
+export default function TrainerTasks() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { showToast } = useToast();
+  const [tasks, setTasks] = useState([]);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("ALL");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ title: "", description: "", dueDate: "" });
+
+  const fullName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Trainer";
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await trainerAPI.getTasks(1, 50);
+      setTasks(getItems(response));
+    } catch (e) {
+      setError(e?.message || "Unable to load tasks.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filtered = useMemo(
+    () =>
+      tasks.filter((task) => {
+        const text = `${task.title || ""} ${task.description || ""}`.toLowerCase();
+        const matches = text.includes(query.toLowerCase());
+        const raw = String(task.status || "").toUpperCase();
+        const matchesStatus = status === "ALL" || raw === status;
+        return matches && matchesStatus;
+      }),
+    [tasks, query, status],
+  );
+
+  const signOut = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const create = async (e) => {
+    e.preventDefault();
+    if (!form.title.trim()) {
+      showToast("Enter a task title.", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await trainerAPI.createTask({
+        title: form.title.trim(),
+        description: form.description,
+        dueDate: form.dueDate || undefined,
+      });
+      showToast("Task created successfully.", "success");
+      setOpen(false);
+      setForm({ title: "", description: "", dueDate: "" });
+      load();
+    } catch (e) {
+      showToast(e?.message || "Failed to create task.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-[#F7F9FC]">
+      <Sidebar
+        navItems={navItems}
+        footerItems={[]}
+        user={{ name: fullName, role: "Company Trainer", avatar: user?.profileImage || "" }}
+        profilePath="/company/trainer/profile"
+        chatPath="/company/trainer/chats"
+        onSignOut={signOut}
+        brandPath="/company/trainer/dashboard"
+        storageKey="sidebar-company-trainer"
+      />
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-[1240px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
+          <PageHeader
+            loading={loading}
+            profile={user}
+            fullName={fullName}
+            studentUser={{ name: fullName, role: "Company Trainer", avatar: user?.profileImage || "" }}
+            searchValue=""
+            onSearchChange={() => {}}
+            chatBadge={0}
+            notificationBadge={0}
+          />
+
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.12em] text-[#7B8497]">Work management</p>
+              <h1 className="mt-1 text-2xl font-extrabold text-[#172033]">Tasks</h1>
+              <p className="mt-1 text-sm text-[#7B8497]">Create work, track deadlines, and review trainee progress.</p>
+            </div>
+            <Button
+              variant="gold"
+              onClick={() => setOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold"
+            >
+              <Plus size={16} /> Create task
+            </Button>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+            <div className="relative">
+              <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A1A9B8]" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search tasks..."
+                className="h-11 w-full rounded-xl border border-[#E4E8EF] bg-white pl-10 pr-4 text-sm outline-none focus:border-[#0475FB]"
+              />
+            </div>
+            <div className="flex gap-2">
+              {["ALL", "PENDING", "SUBMITTED", "COMPLETED"].map((value) => (
+                <button
+                  key={value}
+                  onClick={() => setStatus(value)}
+                  className={`rounded-xl px-3 py-2 text-[10px] font-bold ${
+                    status === value
+                      ? "bg-[#172033] text-white"
+                      : "border border-[#E4E8EF] bg-white text-[#687286]"
+                  }`}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-4 flex gap-2 rounded-xl border border-[#F4D0D0] bg-[#FFF7F7] p-3 text-xs text-[#B42318]">
+              <AlertCircle size={15} />
+              {error}
+            </div>
+          )}
+
+          <div className="mt-5 overflow-hidden rounded-2xl border border-[#E9EDF4] bg-white">
+            <div className="border-b border-[#E9EDF4] px-5 py-4">
+              <h2 className="text-sm font-extrabold text-[#172033]">Task queue</h2>
+              <p className="mt-1 text-xs text-[#7B8497]">
+                {loading ? "Loading..." : `${filtered.length} task${filtered.length === 1 ? "" : "s"}`}
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="space-y-3 p-5">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-20 animate-pulse rounded-xl bg-[#F3F5F8]" />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="p-12 text-center">
+                <ClipboardList className="mx-auto text-[#C8CFDA]" />
+                <p className="mt-3 text-sm font-bold text-[#596274]">No tasks match your filters</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#EEF1F5]">
+                {filtered.map((task) => {
+                  const student = task.student || task.assignedStudent;
+                  const name = `${student?.user?.firstName || ""} ${student?.user?.lastName || ""}`.trim() || task.studentName || "Unassigned";
+                  const taskStatus = String(task.status || "PENDING").toUpperCase();
+
+                  return (
+                    <div key={task.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAF3FF] text-[#0475FB]">
+                        <ClipboardList size={18} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-[#172033]">{task.title || "Untitled task"}</p>
+                        <p className="mt-1 truncate text-xs text-[#7B8497]">
+                          {name}
+                          {task.dueDate ? ` · Due ${new Date(task.dueDate).toLocaleDateString()}` : ""}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                          taskStatus === "COMPLETED"
+                            ? "bg-[#EAF9EF] text-[#16833A]"
+                            : taskStatus === "SUBMITTED"
+                              ? "bg-[#FFF4E5] text-[#A45A00]"
+                              : "bg-[#F1F4F8] text-[#667085]"
+                        }`}
+                      >
+                        {taskStatus === "COMPLETED" ? <CheckCircle2 size={12} /> : <Clock3 size={12} />}
+                        {taskStatus}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {open && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+              <form onSubmit={create} className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-extrabold text-[#172033]">Create a task</h2>
+                    <p className="mt-1 text-xs text-[#7B8497]">Define a clear, actionable assignment for your trainees.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="rounded-lg p-2 hover:bg-[#F4F6F9]"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <input
+                    required
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Task title"
+                    className="h-11 w-full rounded-xl border border-[#E4E8EF] px-3 text-sm outline-none focus:border-[#0475FB]"
+                  />
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Description and expectations"
+                    rows={4}
+                    className="w-full rounded-xl border border-[#E4E8EF] p-3 text-sm outline-none focus:border-[#0475FB]"
+                  />
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-[#596274]">Due date</label>
+                    <input
+                      type="date"
+                      value={form.dueDate}
+                      onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                      className="h-11 w-full rounded-xl border border-[#E4E8EF] px-3 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="rounded-xl px-4 py-2.5 text-xs font-bold text-[#596274]"
+                  >
+                    Cancel
+                  </button>
+                  <Button type="submit" variant="primary" disabled={saving} className="px-4 py-2.5 text-xs font-bold">
+                    {saving ? "Creating..." : "Create task"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
 }
