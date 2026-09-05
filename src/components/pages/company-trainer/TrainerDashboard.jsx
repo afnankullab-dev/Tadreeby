@@ -67,25 +67,23 @@ const MetricCard = ({ icon: Icon, label, value, detail, color, bg, onClick }) =>
 
 function InternshipBanner({ companyName }) {
   return (
-    <section
-      className="relative h-[142px] overflow-hidden rounded-[22px] px-7 py-5 text-white sm:px-8"
-      style={{
-        background: "linear-gradient(145deg, rgb(16, 43, 79) 0%, rgb(18, 62, 112) 60%, rgb(4, 117, 251) 140%)",
-        boxShadow: "rgba(15, 45, 80, 0.16) 0px 10px 28px",
-      }}
-    >
-      <div className="absolute -right-12 -top-20 h-52 w-52 rounded-full bg-white/[0.07]" />
-      <div className="absolute right-[20%] -bottom-24 h-52 w-52 rounded-full bg-[#0475FB]/20" />
+    <section className="relative h-[142px] overflow-visible rounded-[22px] px-7 py-5 text-white sm:px-8" style={{ boxShadow: "rgba(15, 45, 80, 0.16) 0px 10px 28px" }}>
+      <div className="absolute inset-0 overflow-hidden rounded-[22px]" style={{ background: "linear-gradient(145deg, rgb(16, 43, 79) 0%, rgb(18, 62, 112) 60%, rgb(4, 117, 251) 140%)" }}>
+        <div className="absolute -right-12 -top-20 h-52 w-52 rounded-full bg-white/[0.07]" />
+        <div className="absolute right-[20%] -bottom-24 h-52 w-52 rounded-full bg-[#0475FB]/20" />
+      </div>
+
       <div className="relative z-10 max-w-[62%]">
         <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em]">Current Internship</span>
         <h2 className="mt-3 text-[24px] font-extrabold tracking-[-0.7px] sm:text-[27px]">Frontend Developer Trainer</h2>
         <p className="mt-2 text-[11px] font-medium text-white/80 sm:text-[12px]">{companyName}<span className="mx-2 text-white/45">•</span>Field Training<span className="mx-2 text-white/45">•</span>Week 8 of 12</p>
       </div>
+
       <img
         src="/assets/trainer-dashboard-character.png"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 right-[-4px] z-[2] hidden h-[146px] w-auto max-w-[46%] object-contain object-bottom sm:block"
+        className="pointer-events-none absolute bottom-0 right-[-2px] z-20 hidden h-[190px] w-auto max-w-[48%] object-contain object-bottom sm:block"
       />
     </section>
   );
