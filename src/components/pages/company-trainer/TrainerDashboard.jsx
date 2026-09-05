@@ -85,9 +85,7 @@ const MetricCard = ({ icon: Icon, label, value, detail, color, bg, fill, trend, 
     <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.08em] text-[#8B94A6]">{label}</p>
     <p className="mt-1 text-[30px] font-extrabold leading-none tracking-[-1px] text-[#172033]">{value}</p>
     <p className="mt-2 text-[9px] font-semibold text-[#7B8497]">{detail}</p>
-    <div className="mt-2 -mx-1 h-[32px]">
-      <Sparkline points={trend} color={color} fill={fill} />
-    </div>
+    <div className="mt-2 -mx-1 h-[32px]"><Sparkline points={trend} color={color} fill={fill} /></div>
   </button>
 );
 
@@ -117,7 +115,10 @@ function TaskSubmissionChart({ tasks, onViewTasks }) {
 
   return (
     <Card title="Tasks Submission Overview" subtitle="Track trainee progress across current assignments" action={<button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">This Month <span className="ml-1">⌄</span></button>} className="min-h-[390px]">
-      <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]"><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#315BFF]" />Submitted</span><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#E8EAF8]" />Remaining</span></div>
+      <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]">
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#F97316]" />Submitted</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-orange-200/50" />Remaining</span>
+      </div>
       <div className="mt-5 flex gap-4">
         <div className="flex h-[250px] w-8 flex-col justify-between pb-9 text-[8px] font-semibold text-[#A0A8B8]"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
         <div className="relative flex h-[250px] min-w-0 flex-1 items-end justify-between gap-3 border-b border-[#EEF1F5] bg-[linear-gradient(to_bottom,transparent_24.5%,#F0F2F6_25%,transparent_25.5%,transparent_49.5%,#F0F2F6_50%,transparent_50.5%,transparent_74.5%,#F0F2F6_75%,transparent_75.5%)] px-2 sm:gap-5 sm:px-4">
@@ -125,11 +126,22 @@ function TaskSubmissionChart({ tasks, onViewTasks }) {
             const submittedHeight = (task.percent / 100) * 190;
             const remainingHeight = ((100 - task.percent) / 100) * 190;
             const label = task.title?.replace(/weekly report\s*[–-]\s*/i, "Week ") || `Task ${index + 1}`;
-            return <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"><span className="mb-2 text-[9px] font-extrabold text-[#172033]">{task.percent}%</span><div className="flex h-[190px] w-[34px] flex-col justify-end overflow-hidden rounded-t-[9px] bg-[#F1F2FA] shadow-inner sm:w-[42px]"><div className="w-full bg-gradient-to-t from-[#315BFF] to-[#6479FF] transition-all duration-500" style={{ height: `${submittedHeight}px` }} />{remainingHeight > 0 && <div className="w-full bg-[#E4E6F7]" style={{ height: `${remainingHeight}px` }} />}</div><span className="mt-3 line-clamp-2 h-7 w-[58px] text-center text-[8px] font-bold leading-3 text-[#667085] sm:w-[72px]" title={task.title}>{label}</span></div>;
+            return (
+              <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+                <span className="mb-2 text-[9px] font-extrabold text-[#172033]">{task.percent}%</span>
+                <div className="flex h-[190px] w-[34px] flex-col justify-end overflow-hidden rounded-t-[9px] bg-orange-200/50 shadow-inner sm:w-[42px]">
+                  {remainingHeight > 0 && <div className="w-full bg-orange-200/50" style={{ height: `${remainingHeight}px` }} />}
+                  <div className="w-full bg-[#F97316] transition-all duration-500" style={{ height: `${submittedHeight}px` }} />
+                </div>
+                <span className="mt-3 line-clamp-2 h-7 w-[58px] text-center text-[8px] font-bold leading-3 text-[#667085] sm:w-[72px]" title={task.title}>{label}</span>
+              </div>
+            );
           })}
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">{rows.map((task, index) => <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]"><span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span><span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span></div>)}</div>
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">
+        {rows.map((task, index) => <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]"><span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span><span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span></div>)}
+      </div>
     </Card>
   );
 }
@@ -180,16 +192,27 @@ export default function TrainerDashboard() {
   const trainerUser = { name: fullName, role: "Company Trainer", avatar: user?.profileImage || "" };
 
   useEffect(() => {
-    setDashboard(DUMMY_TRAINER_DASHBOARD); setApplications(DUMMY_TRAINER_APPLICATIONS); setStudents(DUMMY_TRAINER_STUDENTS); setTasks(DUMMY_TRAINER_TASKS); setLoading(false);
+    setDashboard(DUMMY_TRAINER_DASHBOARD);
+    setApplications(DUMMY_TRAINER_APPLICATIONS);
+    setStudents(DUMMY_TRAINER_STUDENTS);
+    setTasks(DUMMY_TRAINER_TASKS);
+    setLoading(false);
   }, []);
 
   const action = async (id, type) => {
     setActingId(id);
     try {
-      if (!String(id).startsWith("dummy-")) { if (type === "approve") await trainerAPI.approveApplication(id); else await trainerAPI.rejectApplication(id); }
+      if (!String(id).startsWith("dummy-")) {
+        if (type === "approve") await trainerAPI.approveApplication(id);
+        else await trainerAPI.rejectApplication(id);
+      }
       setApplications((previous) => previous.filter((application) => application.id !== id));
       showToast(type === "approve" ? "Application approved." : "Application rejected.", "success");
-    } catch (error) { showToast(error?.message || "Action failed.", "error"); } finally { setActingId(null); }
+    } catch (error) {
+      showToast(error?.message || "Action failed.", "error");
+    } finally {
+      setActingId(null);
+    }
   };
 
   const stats = dashboard?.stats || {};
@@ -204,16 +227,24 @@ export default function TrainerDashboard() {
           <PageHeader loading={loading} profile={user} fullName={fullName} studentUser={trainerUser} searchValue="" onSearchChange={() => {}} chatBadge={0} notificationBadge={stats.pendingApplications ?? applications.length} />
           <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
             <div className="min-w-0 space-y-5">
-              <div className="px-1 pb-0.5"><p className="text-[12px] font-extrabold tracking-[0.01em] text-[#5C667A]">Trainer Dashboard</p><h1 className="mt-1 text-[30px] font-extrabold tracking-[-1.1px] text-[#101828] sm:text-[34px]">Welcome back, {fullName}</h1><p className="mt-1.5 text-[13px] font-semibold text-[#667085]">Full Stack developer <span className="mx-2 text-[#B0B7C3]">·</span> Atlas Company</p></div>
+              <div className="px-1 pb-0.5">
+                <p className="text-[12px] font-extrabold tracking-[0.01em] text-[#5C667A]">Trainer Dashboard</p>
+                <h1 className="mt-1 text-[30px] font-extrabold tracking-[-1.1px] text-[#101828] sm:text-[34px]">Welcome back, {fullName}</h1>
+                <p className="mt-1.5 text-[13px] font-semibold text-[#667085]">Full Stack developer <span className="mx-2 text-[#B0B7C3]">·</span> Atlas Company</p>
+              </div>
               <InternshipBanner companyName={companyName} />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} fill="#DCD9FF" trend={[10, 15, 12, 18, 14, 16, 11, 19, 13, 21, 15, 24]} onClick={() => navigate("/company/trainer/students")} />
-                <MetricCard icon={ClipboardList} label="Total Tasks" value={Number(stats.activeTasks ?? 5) + Number(stats.completedTasks ?? 1)} detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`} color={COLORS.green} bg={COLORS.greenSoft} fill="#D4F5E7" trend={[8, 13, 10, 17, 14, 20, 16, 22, 18, 25, 21, 28]} onClick={() => navigate("/company/trainer/tasks")} />
-                <MetricCard icon={UserCheck} label="Pending Applications" value={stats.pendingApplications ?? applications.length} detail="Waiting for your review" color={COLORS.orange} bg={COLORS.orangeSoft} fill="#FFE3CF" trend={[6, 9, 7, 12, 10, 14, 11, 16, 13, 15, 12, 17]} onClick={() => navigate("/company/trainer/applications")} />
+                <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} fill="#635BFF" trend={[20, 24, 22, 26, 24, 27, 25, 30, 28, 32]} onClick={() => navigate("/company/trainer/students")} />
+                <MetricCard icon={ClipboardList} label="Total Tasks" value={Number(stats.activeTasks ?? 5) + Number(stats.completedTasks ?? 1)} detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`} color={COLORS.green} bg={COLORS.greenSoft} fill="#19B978" trend={[8, 12, 10, 15, 13, 17, 14, 18, 16, 20]} onClick={() => navigate("/company/trainer/tasks")} />
+                <MetricCard icon={UserCheck} label="Pending Applications" value={stats.pendingApplications ?? applications.length} detail="Waiting for your review" color={COLORS.orange} bg={COLORS.orangeSoft} fill="#FF9B4A" trend={[3, 5, 4, 7, 6, 9, 7, 10, 8, 11]} onClick={() => navigate("/company/trainer/applications")} />
               </div>
               <TaskSubmissionChart tasks={tasks} onViewTasks={() => navigate("/company/trainer/tasks")} />
             </div>
-            <aside className="min-w-0 space-y-5"><CalendarCard /><QuickActions onCreateTask={() => navigate("/company/trainer/tasks")} onApplications={() => navigate("/company/trainer/applications")} onStudents={() => navigate("/company/trainer/students")} /><div className="relative overflow-hidden rounded-[20px] border border-[#E9E5FF] bg-gradient-to-br from-[#F3F1FF] via-white to-[#F9F7FF] p-5 shadow-[0_8px_30px_rgba(34,42,70,0.04)]"><div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#635BFF]/10" /><div className="relative flex items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#EFEEFF] text-[#635BFF]"><Check size={23} /></div><div><p className="text-[11px] font-extrabold text-[#172033]">You’re doing great!</p><p className="mt-1 text-[9px] leading-4 text-[#7B8497]">Keep guiding your trainees toward a successful internship.</p></div></div></div></aside>
+            <aside className="min-w-0 space-y-5">
+              <CalendarCard />
+              <QuickActions onCreateTask={() => navigate("/company/trainer/tasks")} onApplications={() => navigate("/company/trainer/applications")} onStudents={() => navigate("/company/trainer/students")} />
+              <div className="relative overflow-hidden rounded-[20px] border border-[#E9E5FF] bg-gradient-to-br from-[#F3F1FF] via-white to-[#F9F7FF] p-5 shadow-[0_8px_30px_rgba(34,42,70,0.04)]"><div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#635BFF]/10" /><div className="relative flex items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#EFEEFF] text-[#635BFF]"><Check size={23} /></div><div><p className="text-[11px] font-extrabold text-[#172033]">You’re doing great!</p><p className="mt-1 text-[9px] leading-4 text-[#7B8497]">Keep guiding your trainees toward a successful internship.</p></div></div></div>
+            </aside>
           </div>
         </div>
       </main>
