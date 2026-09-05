@@ -3,16 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   CalendarDays,
-  CalendarPlus,
   Check,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  FileText,
   GraduationCap,
-  Plus,
   UserCheck,
-  UserPlus,
 } from "lucide-react";
 import Sidebar from "../../layout/Sidebar";
 import PageHeader from "../../common/pagesAssets/PageHeader";
@@ -168,16 +164,6 @@ function CalendarCard() {
   );
 }
 
-function QuickActions({ onCreateTask, onApplications, onStudents }) {
-  const actions = [
-    { icon: Plus, title: "Create New Task", subtitle: "Assign a new task", color: COLORS.primary, bg: COLORS.primarySoft, onClick: onCreateTask },
-    { icon: UserPlus, title: "Add Trainee", subtitle: "Manage your trainees", color: COLORS.green, bg: COLORS.greenSoft, onClick: onStudents },
-    { icon: FileText, title: "Review Applications", subtitle: "Check new applications", color: COLORS.orange, bg: COLORS.orangeSoft, onClick: onApplications },
-    { icon: CalendarPlus, title: "Schedule Meeting", subtitle: "Plan a trainer meeting", color: COLORS.pink, bg: COLORS.pinkSoft, onClick: () => {} },
-  ];
-  return <Card title="Quick Actions" subtitle="Common trainer tasks"><div className="mt-4 grid grid-cols-2 gap-2.5">{actions.map((item) => { const Icon = item.icon; return <button key={item.title} type="button" onClick={item.onClick} className="group rounded-[15px] border border-[#EEF1F5] bg-[#FCFCFE] p-3 text-left transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_8px_20px_rgba(34,42,70,0.06)]"><span className="flex h-9 w-9 items-center justify-center rounded-[11px]" style={{ backgroundColor: item.bg, color: item.color }}><Icon size={17} /></span><p className="mt-2.5 text-[10px] font-extrabold text-[#344054]">{item.title}</p><p className="mt-0.5 text-[8px] leading-3 text-[#8B94A6]">{item.subtitle}</p></button>; })}</div></Card>;
-}
-
 export default function TrainerDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -222,28 +208,35 @@ export default function TrainerDashboard() {
   return (
     <div className="relative flex h-screen w-full overflow-hidden bg-[#F7F8FC] font-['Inter']">
       <Sidebar navItems={trainerNavItems} footerItems={[]} user={trainerUser} {...trainerSidebarProps} onSignOut={signOut} />
-      <main className="relative z-10 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1320px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
-          <PageHeader loading={loading} profile={user} fullName={fullName} studentUser={trainerUser} searchValue="" onSearchChange={() => {}} chatBadge={0} notificationBadge={stats.pendingApplications ?? applications.length} />
-          <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
-            <div className="min-w-0 space-y-5">
-              <div className="px-1 pb-0.5">
-                <p className="text-[12px] font-extrabold tracking-[0.01em] text-[#5C667A]">Trainer Dashboard</p>
-                <h1 className="mt-1 text-[30px] font-extrabold tracking-[-1.1px] text-[#101828] sm:text-[34px]">Welcome back, {fullName}</h1>
-                <p className="mt-1.5 text-[13px] font-semibold text-[#667085]">Full Stack developer <span className="mx-2 text-[#B0B7C3]">·</span> Atlas Company</p>
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="mx-auto flex min-h-0 w-full max-w-[1320px] flex-1 flex-col px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
+          <div className="shrink-0">
+            <PageHeader loading={loading} profile={user} fullName={fullName} studentUser={trainerUser} searchValue="" onSearchChange={() => {}} chatBadge={0} notificationBadge={stats.pendingApplications ?? applications.length} />
+          </div>
+
+          <div className="mt-6 min-h-0 flex-1 grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+            <div className="min-h-0 min-w-0 overflow-y-auto overscroll-contain pr-1 pb-8 scrollbar-thin">
+              <div className="space-y-5">
+                <div className="px-1 pb-0.5">
+                  <p className="text-[12px] font-extrabold tracking-[0.01em] text-[#5C667A]">Trainer Dashboard</p>
+                  <h1 className="mt-1 text-[30px] font-extrabold tracking-[-1.1px] text-[#101828] sm:text-[34px]">Welcome back, {fullName}</h1>
+                  <p className="mt-1.5 text-[13px] font-semibold text-[#667085]">Full Stack developer <span className="mx-2 text-[#B0B7C3]">·</span> Atlas Company</p>
+                </div>
+                <InternshipBanner companyName={companyName} />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} fill="#635BFF" trend={[20, 24, 22, 26, 24, 27, 25, 30, 28, 32]} onClick={() => navigate("/company/trainer/students")} />
+                  <MetricCard icon={ClipboardList} label="Total Tasks" value={Number(stats.activeTasks ?? 5) + Number(stats.completedTasks ?? 1)} detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`} color={COLORS.green} bg={COLORS.greenSoft} fill="#19B978" trend={[8, 12, 10, 15, 13, 17, 14, 18, 16, 20]} onClick={() => navigate("/company/trainer/tasks")} />
+                  <MetricCard icon={UserCheck} label="Pending Applications" value={stats.pendingApplications ?? applications.length} detail="Waiting for your review" color={COLORS.orange} bg={COLORS.orangeSoft} fill="#FF9B4A" trend={[3, 5, 4, 7, 6, 9, 7, 10, 8, 11]} onClick={() => navigate("/company/trainer/applications")} />
+                </div>
+                <TaskSubmissionChart tasks={tasks} onViewTasks={() => navigate("/company/trainer/tasks")} />
               </div>
-              <InternshipBanner companyName={companyName} />
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} fill="#635BFF" trend={[20, 24, 22, 26, 24, 27, 25, 30, 28, 32]} onClick={() => navigate("/company/trainer/students")} />
-                <MetricCard icon={ClipboardList} label="Total Tasks" value={Number(stats.activeTasks ?? 5) + Number(stats.completedTasks ?? 1)} detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`} color={COLORS.green} bg={COLORS.greenSoft} fill="#19B978" trend={[8, 12, 10, 15, 13, 17, 14, 18, 16, 20]} onClick={() => navigate("/company/trainer/tasks")} />
-                <MetricCard icon={UserCheck} label="Pending Applications" value={stats.pendingApplications ?? applications.length} detail="Waiting for your review" color={COLORS.orange} bg={COLORS.orangeSoft} fill="#FF9B4A" trend={[3, 5, 4, 7, 6, 9, 7, 10, 8, 11]} onClick={() => navigate("/company/trainer/applications")} />
-              </div>
-              <TaskSubmissionChart tasks={tasks} onViewTasks={() => navigate("/company/trainer/tasks")} />
             </div>
-            <aside className="min-w-0 space-y-5">
-              <CalendarCard />
-              <QuickActions onCreateTask={() => navigate("/company/trainer/tasks")} onApplications={() => navigate("/company/trainer/applications")} onStudents={() => navigate("/company/trainer/students")} />
-              <div className="relative overflow-hidden rounded-[20px] border border-[#E9E5FF] bg-gradient-to-br from-[#F3F1FF] via-white to-[#F9F7FF] p-5 shadow-[0_8px_30px_rgba(34,42,70,0.04)]"><div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#635BFF]/10" /><div className="relative flex items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#EFEEFF] text-[#635BFF]"><Check size={23} /></div><div><p className="text-[11px] font-extrabold text-[#172033]">You’re doing great!</p><p className="mt-1 text-[9px] leading-4 text-[#7B8497]">Keep guiding your trainees toward a successful internship.</p></div></div></div>
+
+            <aside className="min-h-0 min-w-0 overflow-y-auto overscroll-contain pr-1 pb-8 scrollbar-thin">
+              <div className="space-y-5">
+                <CalendarCard />
+                <div className="relative overflow-hidden rounded-[20px] border border-[#E9E5FF] bg-gradient-to-br from-[#F3F1FF] via-white to-[#F9F7FF] p-5 shadow-[0_8px_30px_rgba(34,42,70,0.04)]"><div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#635BFF]/10" /><div className="relative flex items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#EFEEFF] text-[#635BFF]"><Check size={23} /></div><div><p className="text-[11px] font-extrabold text-[#172033]">You’re doing great!</p><p className="mt-1 text-[9px] leading-4 text-[#7B8497]">Keep guiding your trainees toward a successful internship.</p></div></div></div>
+              </div>
             </aside>
           </div>
         </div>
