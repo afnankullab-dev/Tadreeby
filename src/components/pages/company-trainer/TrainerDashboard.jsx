@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   Building2,
+  CalendarDays,
+  CalendarPlus,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
-  Clock3,
-  FileCheck2,
+  FileText,
   GraduationCap,
-  MoreHorizontal,
   Plus,
   UserCheck,
-  Users,
+  UserPlus,
   X,
 } from "lucide-react";
 import Sidebar from "../../layout/Sidebar";
@@ -29,14 +31,17 @@ import {
 } from "./trainerMockData";
 
 const COLORS = {
-  primary: "#0475FB",
-  primarySoft: "#EAF3FF",
-  accent: "#FFAD4E",
-  accentSoft: "#FFF4E5",
-  green: "#22C55E",
-  greenSoft: "#EAF9EF",
-  purple: "#8B5CF6",
-  purpleSoft: "#F2EDFF",
+  primary: "#635BFF",
+  primaryDark: "#4F46E5",
+  primarySoft: "#EFEEFF",
+  blue: "#3B82F6",
+  blueSoft: "#EAF3FF",
+  green: "#19B978",
+  greenSoft: "#E9FAF3",
+  orange: "#FF9B4A",
+  orangeSoft: "#FFF1E6",
+  pink: "#F45B8A",
+  pinkSoft: "#FFEAF1",
   text: "#172033",
   muted: "#7B8497",
   border: "#E9EDF4",
@@ -44,222 +49,130 @@ const COLORS = {
 
 const Card = ({ title, subtitle, action, children, className = "" }) => (
   <section
-    className={`rounded-[20px] border bg-white p-5 shadow-sm ${className}`}
+    className={`rounded-[20px] border bg-white p-5 shadow-[0_8px_30px_rgba(34,42,70,0.05)] ${className}`}
     style={{ borderColor: COLORS.border }}
   >
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <h2 className="text-[16px] font-extrabold text-[#172033]">{title}</h2>
-        {subtitle && (
-          <p className="mt-1 text-[10px] font-medium text-[#7B8497]">{subtitle}</p>
-        )}
+    {(title || action) && (
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          {title && <h2 className="text-[16px] font-extrabold tracking-[-0.2px] text-[#172033]">{title}</h2>}
+          {subtitle && <p className="mt-1 text-[10px] font-medium text-[#7B8497]">{subtitle}</p>}
+        </div>
+        {action}
       </div>
-      {action}
-    </div>
+    )}
     {children}
   </section>
 );
 
-const StatCard = ({ icon: Icon, label, value, color, bg, sub, onClick }) => (
+const MetricCard = ({ icon: Icon, label, value, detail, color, bg, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="rounded-[18px] border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    className="group min-h-[155px] rounded-[20px] border bg-white p-5 text-left shadow-[0_8px_30px_rgba(34,42,70,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_35px_rgba(34,42,70,0.09)]"
     style={{ borderColor: COLORS.border }}
   >
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#7B8497]">
-          {label}
-        </p>
-        <p className="mt-1 text-[23px] font-extrabold tracking-[-0.4px] text-[#172033]">
-          {value}
-        </p>
-        {sub && <p className="mt-1 text-[10px] font-medium text-[#7B8497]">{sub}</p>}
-      </div>
-      <div className="rounded-full p-2.5" style={{ backgroundColor: bg }}>
-        <Icon size={17} style={{ color }} />
-      </div>
+    <div className="flex items-start justify-between">
+      <span className="flex h-12 w-12 items-center justify-center rounded-[15px]" style={{ backgroundColor: bg, color }}>
+        <Icon size={23} />
+      </span>
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F8FB] text-[#7B8497] transition group-hover:bg-[#EFEEFF] group-hover:text-[#635BFF]">
+        <ArrowUpRight size={15} />
+      </span>
     </div>
+    <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8B94A6]">{label}</p>
+    <p className="mt-1 text-[30px] font-extrabold tracking-[-1px] text-[#172033]">{value}</p>
+    <p className="mt-1 text-[10px] font-semibold text-[#7B8497]">{detail}</p>
   </button>
 );
 
-function InternshipTimeGauge({ startDate, endDate }) {
-  const progress = useMemo(() => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const today = new Date();
-    const totalMs = Math.max(1, end.getTime() - start.getTime());
-    const elapsedMs = Math.min(
-      totalMs,
-      Math.max(0, today.getTime() - start.getTime())
-    );
-    const percent = Math.round((elapsedMs / totalMs) * 100);
-    const daysPassed = Math.floor(elapsedMs / 86400000);
-    const daysRemaining = Math.max(
-      0,
-      Math.ceil(
-        (end.getTime() - Math.max(today.getTime(), start.getTime())) / 86400000
-      )
-    );
-    const totalDays = Math.ceil(totalMs / 86400000);
-    return { percent, daysPassed, daysRemaining, totalDays, start, end };
-  }, [startDate, endDate]);
-
-  // A 180-degree gauge, inspired by the reference dashboard's time tracker.
-  const radius = 78;
-  const circumference = Math.PI * radius;
-  const dash = (progress.percent / 100) * circumference;
-
+function InternshipBanner({ companyName }) {
   return (
-    <Card
-      title="Internship Time"
-      subtitle="Overall progress through the training period"
-      action={
-        <button
-          type="button"
-          className="rounded-full p-1.5 text-[#596274] hover:bg-[#F7F9FC]"
-          aria-label="More internship time options"
-        >
-          <MoreHorizontal size={17} />
-        </button>
-      }
-    >
-      <div className="mt-3 flex flex-col items-center">
-        <div className="relative h-[150px] w-full max-w-[330px] overflow-hidden">
-          <svg viewBox="0 0 200 115" className="absolute inset-x-0 top-1 h-[180px] w-full">
-            <path
-              d="M 22 100 A 78 78 0 0 1 178 100"
-              fill="none"
-              stroke="#EEF1F5"
-              strokeWidth="14"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 22 100 A 78 78 0 0 1 178 100"
-              fill="none"
-              stroke={COLORS.primary}
-              strokeWidth="14"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference}`}
-            />
-            <circle cx="22" cy="100" r="4" fill="#D9E8FA" />
-            <circle cx="178" cy="100" r="4" fill="#D9E8FA" />
-          </svg>
-          <div className="absolute inset-x-0 bottom-1 text-center">
-            <p className="text-[30px] font-extrabold tracking-[-1px] text-[#172033]">
-              {progress.percent}%
-            </p>
-            <p className="text-[10px] font-semibold text-[#7B8497]">Time Passed</p>
-          </div>
-        </div>
+    <section className="relative h-[142px] overflow-hidden rounded-[22px] bg-gradient-to-r from-[#5146E5] via-[#6657F4] to-[#7568F7] px-7 py-5 text-white shadow-[0_12px_35px_rgba(99,91,255,0.22)] sm:px-8">
+      <div className="absolute -right-8 -top-16 h-44 w-44 rounded-full bg-white/10" />
+      <div className="absolute right-36 -bottom-20 h-44 w-44 rounded-full bg-[#8D85FF]/30" />
+      <div className="absolute right-12 top-7 h-24 w-24 rounded-full bg-white/5" />
 
-        <div className="mt-1 grid w-full grid-cols-2 gap-3">
-          <div className="rounded-xl bg-[#F7F9FC] p-3">
-            <p className="text-[9px] font-medium text-[#7B8497]">Start Date</p>
-            <p className="mt-1 text-[11px] font-bold text-[#172033]">
-              {progress.start.toLocaleDateString()}
-            </p>
-          </div>
-          <div className="rounded-xl bg-[#F7F9FC] p-3">
-            <p className="text-[9px] font-medium text-[#7B8497]">End Date</p>
-            <p className="mt-1 text-[11px] font-bold text-[#172033]">
-              {progress.end.toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-3 flex w-full items-center justify-between text-[9px] text-[#7B8497]">
-          <span>{progress.daysPassed} days passed</span>
-          <span>{progress.daysRemaining} days remaining</span>
-        </div>
-        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#EEF1F5]">
-          <div
-            className="h-full rounded-full bg-[#0475FB]"
-            style={{ width: `${progress.percent}%` }}
-          />
-        </div>
-        <p className="mt-1.5 self-end text-[9px] font-medium text-[#7B8497]">
-          {progress.totalDays} days total
+      <div className="relative z-10 max-w-[65%]">
+        <span className="inline-flex rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur-sm">
+          Current Internship
+        </span>
+        <h2 className="mt-3 text-[24px] font-extrabold tracking-[-0.7px] sm:text-[27px]">Frontend Developer Trainer</h2>
+        <p className="mt-2 text-[11px] font-medium text-white/85 sm:text-[12px]">
+          {companyName} <span className="mx-2 text-white/50">•</span> Field Training <span className="mx-2 text-white/50">•</span> Week 8 of 12
         </p>
       </div>
-    </Card>
+
+      <div className="absolute bottom-5 right-7 hidden items-end gap-2 sm:flex" aria-hidden="true">
+        <div className="h-14 w-16 rounded-xl border border-white/25 bg-white/15 p-2 backdrop-blur-sm">
+          <div className="h-2 w-7 rounded-full bg-white/55" />
+          <div className="mt-2 h-2 w-11 rounded-full bg-white/35" />
+          <div className="mt-2 h-2 w-9 rounded-full bg-white/25" />
+        </div>
+        <div className="relative h-20 w-16">
+          <div className="absolute bottom-0 left-3 h-14 w-11 rounded-[14px] bg-[#FFB16C]" />
+          <div className="absolute left-5 top-0 h-10 w-10 rounded-full bg-[#FFD2A9] shadow-sm" />
+          <div className="absolute left-7 top-2 h-2 w-2 rounded-full bg-[#172033]" />
+          <div className="absolute left-11 top-2 h-2 w-2 rounded-full bg-[#172033]" />
+          <div className="absolute left-4 top-0 h-4 w-12 -rotate-6 rounded-full bg-[#3B2A23]" />
+          <div className="absolute bottom-3 left-0 h-9 w-5 -rotate-12 rounded-full bg-[#5146E5]" />
+        </div>
+      </div>
+    </section>
   );
 }
 
 function TaskSubmissionChart({ tasks, onViewTasks }) {
   const rows = tasks.slice(0, 6).map((task) => {
     const total = Number(task.totalStudents ?? task.assignedStudentsCount ?? 24);
-    const submitted = Math.min(
-      total,
-      Number(task.submittedCount ?? task.submissionsCount ?? 0)
-    );
+    const submitted = Math.min(total, Number(task.submittedCount ?? task.submissionsCount ?? 0));
     const percent = total ? Math.round((submitted / total) * 100) : 0;
     return { ...task, total, submitted, remaining: Math.max(0, total - submitted), percent };
   });
 
   return (
     <Card
-      title="Task Submissions"
-      subtitle="Submitted work compared with outstanding submissions"
+      title="Tasks Submission Overview"
+      subtitle="Track trainee progress across current assignments"
       action={
-        <button
-          type="button"
-          onClick={onViewTasks}
-          className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]"
-        >
-          All Tasks <span className="ml-1">⌄</span>
+        <button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">
+          This Month <span className="ml-1">⌄</span>
         </button>
       }
+      className="min-h-[380px]"
     >
-      <div className="mt-5 flex items-end gap-3 border-b border-[#EEF1F5] px-1 pb-2">
-        <div className="flex w-8 flex-col justify-between text-[8px] font-medium text-[#A0A8B8]" style={{ height: 172 }}>
-          <span>100%</span>
-          <span>75%</span>
-          <span>50%</span>
-          <span>25%</span>
-          <span>0%</span>
+      <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]">
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#635BFF]" /> Submitted</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#DCDCF8]" /> Remaining</span>
+      </div>
+
+      <div className="mt-5 flex gap-3">
+        <div className="flex h-[215px] w-8 flex-col justify-between pb-8 text-[8px] font-semibold text-[#A0A8B8]">
+          <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
         </div>
-        <div className="flex h-[172px] min-w-0 flex-1 items-end justify-around gap-2">
+        <div className="relative flex h-[215px] min-w-0 flex-1 items-end justify-around gap-2 border-b border-[#EEF1F5] bg-[linear-gradient(to_bottom,transparent_24%,#F2F3F7_25%,transparent_26%,transparent_49%,#F2F3F7_50%,transparent_51%,transparent_74%,#F2F3F7_75%,transparent_76%)]">
           {rows.map((task, index) => {
-            const submittedHeight = Math.max(8, (task.percent / 100) * 150);
-            const remainingHeight = task.remaining ? Math.max(4, 150 - submittedHeight) : 0;
+            const submittedHeight = Math.max(12, (task.percent / 100) * 165);
+            const remainingHeight = Math.max(0, 165 - submittedHeight);
             return (
               <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end">
-                <div className="mb-1 text-[8px] font-extrabold text-[#596274]">
-                  {task.percent}%
+                <span className="mb-2 text-[9px] font-extrabold text-[#344054]">{task.percent}%</span>
+                <div className="flex w-full max-w-[42px] flex-col justify-end overflow-hidden rounded-t-[8px]" style={{ height: 165 }}>
+                  <div className="w-full bg-gradient-to-t from-[#635BFF] to-[#817BFF]" style={{ height: submittedHeight }} />
+                  {remainingHeight > 0 && <div className="w-full bg-[#DCDCF8]" style={{ height: remainingHeight }} />}
                 </div>
-                <div className="flex w-full max-w-[38px] flex-col justify-end overflow-hidden rounded-t-[7px] bg-[#F1F4F8]" style={{ height: 150 }}>
-                  <div className="w-full rounded-t-[7px] bg-[#0475FB] transition-all" style={{ height: submittedHeight }} title={`${task.submitted} submitted`} />
-                  {remainingHeight > 0 && (
-                    <div className="w-full bg-[#DDE3EC]" style={{ height: remainingHeight }} title={`${task.remaining} remaining`} />
-                  )}
-                </div>
-                <span className="mt-2 w-full truncate text-center text-[8px] font-semibold text-[#7B8497]" title={task.title}>
-                  {`T${index + 1}`}
-                </span>
+                <span className="mt-3 w-full truncate text-center text-[8px] font-bold text-[#7B8497]" title={task.title}>T{index + 1}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-4 text-[9px] font-semibold text-[#596274]">
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#0475FB]" /> Submitted</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#DDE3EC]" /> Remaining</span>
-        </div>
-        {rows.length > 0 && (
-          <span className="text-[9px] font-medium text-[#7B8497]">T1–T{rows.length} · 24 trainees</span>
-        )}
-      </div>
-
-      <div className="mt-4 space-y-2 border-t border-[#EEF1F5] pt-3">
-        {rows.slice(0, 3).map((task) => (
-          <div key={task.id} className="flex items-center gap-2 text-[9px]">
-            <span className="w-6 shrink-0 font-extrabold text-[#A0A8B8]">{task.percent}%</span>
-            <span className="min-w-0 flex-1 truncate font-semibold text-[#344054]">{task.title}</span>
-            <span className="shrink-0 text-[#7B8497]">{task.submitted}/{task.total}</span>
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">
+        {rows.map((task, index) => (
+          <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]">
+            <span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span>
+            <span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span>
           </div>
         ))}
       </div>
@@ -267,188 +180,94 @@ function TaskSubmissionChart({ tasks, onViewTasks }) {
   );
 }
 
-function AttendanceGauge({ attendanceRate, onViewAttendance }) {
-  const value = Number(attendanceRate ?? 86.7);
-  const radius = 46;
-  const circumference = 2 * Math.PI * radius;
-  const dash = (Math.min(100, Math.max(0, value)) / 100) * circumference;
+const EVENTS = [
+  { date: 8, title: "Weekly Mentor Meeting", time: "10:00 AM", color: COLORS.primary, bg: COLORS.primarySoft },
+  { date: 10, title: "Project Review", time: "02:00 PM", color: COLORS.green, bg: COLORS.greenSoft },
+  { date: 15, title: "Weekly Progress Sync", time: "11:30 AM", color: COLORS.orange, bg: COLORS.orangeSoft },
+];
+
+function CalendarCard() {
+  const year = 2026;
+  const month = 8;
+  const today = 5;
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = Array.from({ length: Math.ceil((firstDay + daysInMonth) / 7) * 7 }, (_, i) => {
+    const day = i - firstDay + 1;
+    return day > 0 && day <= daysInMonth ? day : null;
+  });
+  const eventDates = new Set(EVENTS.map((event) => event.date));
 
   return (
-    <Card
-      title="Attendance"
-      subtitle="Average trainee attendance"
-      action={
-        <button
-          type="button"
-          onClick={onViewAttendance}
-          className="text-[10px] font-extrabold text-[#0475FB]"
-        >
-          View Details
-        </button>
-      }
-    >
-      <div className="mt-4 flex items-center gap-5">
-        <div className="relative h-[112px] w-[112px] shrink-0">
-          <svg viewBox="0 0 112 112" className="h-full w-full -rotate-90">
-            <circle cx="56" cy="56" r={radius} fill="none" stroke="#EEF1F5" strokeWidth="10" />
-            <circle
-              cx="56"
-              cy="56"
-              r={radius}
-              fill="none"
-              stroke={COLORS.green}
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference}`}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[21px] font-extrabold text-[#172033]">{value}%</span>
-            <span className="text-[8px] font-semibold text-[#7B8497]">Present</span>
-          </div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[20px] font-extrabold tracking-[-0.4px] text-[#172033]">Good</p>
-          <p className="mt-1 text-[10px] leading-4 text-[#7B8497]">
-            Your trainees are maintaining a strong attendance rate across the internship.
-          </p>
-          <div className="mt-3 flex items-center gap-2 text-[9px] font-bold text-[#22A75A]">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF9EF]">↑</span>
-            On track
-          </div>
-        </div>
+    <Card title="Calendar" subtitle="Your upcoming internship schedule" className="p-5">
+      <div className="mt-4 flex items-center justify-between">
+        <button type="button" className="rounded-full p-1.5 text-[#7B8497] hover:bg-[#F7F8FB]"><ChevronLeft size={16} /></button>
+        <h3 className="text-[14px] font-extrabold text-[#172033]">September 2026</h3>
+        <button type="button" className="rounded-full p-1.5 text-[#7B8497] hover:bg-[#F7F8FB]"><ChevronRight size={16} /></button>
       </div>
-    </Card>
-  );
-}
+      <div className="mt-4 grid grid-cols-7 text-center text-[9px] font-extrabold uppercase text-[#9AA2B1]">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => <span key={day} className="py-1">{day}</span>)}
+      </div>
+      <div className="mt-1 grid grid-cols-7 gap-y-1 text-center">
+        {cells.map((day, index) => (
+          <div key={index} className="flex h-9 items-center justify-center">
+            {day && (
+              <div className={`relative flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${day === today ? 'bg-[#635BFF] text-white shadow-[0_4px_12px_rgba(99,91,255,0.28)]' : 'text-[#344054]'}`}>
+                {day}
+                {eventDates.has(day) && day !== today && <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[#635BFF]" />}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
 
-function RecentActivity({ applications, tasks }) {
-  const items = [
-    ...tasks
-      .filter((task) => Number(task.submittedCount ?? 0) > 0)
-      .slice(0, 2)
-      .map((task) => ({
-        icon: Check,
-        bg: COLORS.greenSoft,
-        color: COLORS.green,
-        text: `${task.submittedCount} trainees submitted “${task.title}”`,
-        tag: "Task Submission",
-      })),
-    ...applications.slice(0, 2).map((application) => ({
-      icon: UserCheck,
-      bg: COLORS.accentSoft,
-      color: "#A45A00",
-      text: `New application from ${application.student?.user?.firstName || "Student"} ${application.student?.user?.lastName || ""}`,
-      tag: "New Application",
-    })),
-  ].slice(0, 4);
-
-  return (
-    <Card
-      title="Recent Activity"
-      subtitle="Latest activity from your internship"
-      action={<span className="text-[10px] font-extrabold text-[#0475FB]">Today</span>}
-    >
-      <div className="mt-3 divide-y divide-[#EEF1F5]">
-        {items.map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <div key={index} className="flex items-center gap-3 py-3 first:pt-1">
-              <div
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: item.bg, color: item.color }}
-              >
-                <Icon size={14} />
+      <div className="mt-4 border-t border-[#EEF1F5] pt-4">
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] font-extrabold text-[#172033]">Upcoming Events</p>
+          <CalendarDays size={15} className="text-[#635BFF]" />
+        </div>
+        <div className="mt-3 space-y-2.5">
+          {EVENTS.map((event) => (
+            <div key={event.date} className="flex items-center gap-3 rounded-[14px] border border-[#EEF1F5] bg-white p-2.5 shadow-[0_4px_15px_rgba(34,42,70,0.035)]">
+              <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-[11px]" style={{ backgroundColor: event.bg, color: event.color }}>
+                <span className="text-[8px] font-extrabold uppercase">Sep</span>
+                <span className="text-[14px] font-extrabold leading-4">{event.date}</span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[11px] font-semibold text-[#344054]">{item.text}</p>
-                <p className="mt-0.5 text-[9px] text-[#7B8497]">Recently</p>
+                <p className="truncate text-[10px] font-extrabold text-[#344054]">{event.title}</p>
+                <p className="mt-0.5 text-[9px] font-medium text-[#7B8497]">Sep {event.date}, 2026 · {event.time}</p>
               </div>
-              <span className="hidden rounded-full bg-[#F2EDFF] px-2 py-1 text-[9px] font-bold text-[#6D4AE8] sm:block">
-                {item.tag}
-              </span>
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: event.color }} />
             </div>
-          );
-        })}
+          ))}
+        </div>
+        <button type="button" className="mt-3 flex w-full items-center justify-center gap-1 text-[9px] font-extrabold text-[#635BFF]">View all events <ArrowUpRight size={11} /></button>
       </div>
     </Card>
   );
 }
 
-function TraineeOverview({ students, onViewAll, onOpenStudent }) {
+function QuickActions({ onCreateTask, onApplications, onStudents }) {
+  const actions = [
+    { icon: Plus, title: "Create New Task", subtitle: "Assign a new task", color: COLORS.primary, bg: COLORS.primarySoft, onClick: onCreateTask },
+    { icon: UserPlus, title: "Add Trainee", subtitle: "Manage your trainees", color: COLORS.green, bg: COLORS.greenSoft, onClick: onStudents },
+    { icon: FileText, title: "Review Applications", subtitle: "Check new applications", color: COLORS.orange, bg: COLORS.orangeSoft, onClick: onApplications },
+    { icon: CalendarPlus, title: "Schedule Meeting", subtitle: "Plan a trainer meeting", color: COLORS.pink, bg: COLORS.pinkSoft, onClick: () => {} },
+  ];
+
   return (
-    <Card
-      title="Trainee Overview"
-      subtitle="Interns currently under your supervision"
-      action={
-        <button type="button" onClick={onViewAll} className="text-[10px] font-extrabold text-[#0475FB]">
-          View all
-        </button>
-      }
-      className="overflow-hidden"
-    >
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[680px] border-collapse text-left">
-          <thead>
-            <tr className="border-b border-[#EEF1F5] text-[9px] font-bold uppercase tracking-[0.06em] text-[#9AA2B1]">
-              <th className="px-2 pb-3">Trainee</th>
-              <th className="px-2 pb-3">Major</th>
-              <th className="px-2 pb-3">Tasks</th>
-              <th className="px-2 pb-3">Attendance</th>
-              <th className="px-2 pb-3">Status</th>
-              <th className="px-2 pb-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.slice(0, 5).map((item, index) => {
-              const student = item.student || item;
-              const name = `${student.user?.firstName || ""} ${student.user?.lastName || ""}`.trim() || "Student";
-              const attendance = [92, 88, 84, 91, 79][index % 5];
-              const completed = [5, 4, 4, 5, 3][index % 5];
-              const status = attendance >= 80 ? "On Track" : "Needs Attention";
-              return (
-                <tr key={item.id || index} className="border-b border-[#F1F3F7] last:border-0">
-                  <td className="px-2 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EAF3FF] text-[10px] font-extrabold text-[#0475FB]">
-                        {name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-[10px] font-bold text-[#172033]">{name}</p>
-                        <p className="truncate text-[9px] text-[#7B8497]">{student.email || "—"}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-2 py-3 text-[10px] font-semibold text-[#596274]">{student.major || "—"}</td>
-                  <td className="px-2 py-3 text-[10px] font-bold text-[#596274]">{completed}/6</td>
-                  <td className="px-2 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-14 overflow-hidden rounded-full bg-[#EEF1F5]">
-                        <div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${attendance}%` }} />
-                      </div>
-                      <span className="text-[9px] font-bold text-[#596274]">{attendance}%</span>
-                    </div>
-                  </td>
-                  <td className="px-2 py-3">
-                    <span className={`rounded-full px-2 py-1 text-[8px] font-extrabold ${status === "On Track" ? "bg-[#EAF9EF] text-[#19964A]" : "bg-[#FFF4E5] text-[#A45A00]"}`}>
-                      {status}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => onOpenStudent(item.id)}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#7B8497] hover:bg-[#F7F9FC] hover:text-[#0475FB]"
-                      aria-label={`Open ${name}`}
-                    >
-                      <ArrowUpRight size={13} />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+    <Card title="Quick Actions" subtitle="Common trainer tasks">
+      <div className="mt-4 grid grid-cols-2 gap-2.5">
+        {actions.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button key={item.title} type="button" onClick={item.onClick} className="group rounded-[15px] border border-[#EEF1F5] bg-[#FCFCFE] p-3 text-left transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_8px_20px_rgba(34,42,70,0.06)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-[11px]" style={{ backgroundColor: item.bg, color: item.color }}><Icon size={17} /></span>
+              <p className="mt-2.5 text-[10px] font-extrabold text-[#344054]">{item.title}</p>
+              <p className="mt-0.5 text-[8px] leading-3 text-[#8B94A6]">{item.subtitle}</p>
+            </button>
+          );
+        })}
       </div>
     </Card>
   );
@@ -466,14 +285,10 @@ export default function TrainerDashboard() {
   const [actingId, setActingId] = useState(null);
 
   const fullName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Trainer";
-  const trainerUser = {
-    name: fullName,
-    role: "Company Trainer",
-    avatar: user?.profileImage || "",
-  };
+  const trainerUser = { name: fullName, role: "Company Trainer", avatar: user?.profileImage || "" };
 
-  // The trainer list endpoints are kept in services/api.js for future backend integration,
-  // but are intentionally not invoked here until those routes are available.
+  // Keep the trainer API methods available for future backend integration,
+  // but do not call unsupported trainer GET endpoints until the backend routes exist.
   useEffect(() => {
     setDashboard(DUMMY_TRAINER_DASHBOARD);
     setApplications(DUMMY_TRAINER_APPLICATIONS);
@@ -501,210 +316,45 @@ export default function TrainerDashboard() {
   const stats = dashboard?.stats || {};
   const companyName = dashboard?.company?.name || "Your Company";
   const internship = dashboard?.internship || DUMMY_TRAINER_DASHBOARD.internship;
-  const signOut = () => {
-    logout();
-    navigate("/login");
-  };
+  const totalTasks = Number(stats.activeTasks ?? 5) + Number(stats.completedTasks ?? 1);
+  const signOut = () => { logout(); navigate("/login"); };
 
   return (
-    <div className="relative flex h-screen w-full overflow-hidden bg-gradient-to-b from-[#F2F7FF] via-[#F8FAFC] to-[#FFF8F4] font-['Inter']">
-      <Sidebar
-        navItems={trainerNavItems}
-        footerItems={[]}
-        user={trainerUser}
-        {...trainerSidebarProps}
-        onSignOut={signOut}
-      />
+    <div className="relative flex h-screen w-full overflow-hidden bg-[#F7F8FC] font-['Inter']">
+      <Sidebar navItems={trainerNavItems} footerItems={[]} user={trainerUser} {...trainerSidebarProps} onSignOut={signOut} />
       <main className="relative z-10 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1240px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
-          <PageHeader
-            loading={loading}
-            profile={user}
-            fullName={fullName}
-            studentUser={trainerUser}
-            searchValue=""
-            onSearchChange={() => {}}
-            chatBadge={0}
-            notificationBadge={stats.pendingApplications ?? applications.length}
-          />
+        <div className="mx-auto w-full max-w-[1320px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
+          <PageHeader loading={loading} profile={user} fullName={fullName} studentUser={trainerUser} searchValue="" onSearchChange={() => {}} chatBadge={0} notificationBadge={stats.pendingApplications ?? applications.length} />
 
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7B8497]">Trainer Dashboard</p>
-              <h1 className="text-[25px] font-extrabold tracking-[-0.6px] text-[#172033]">Internship Overview</h1>
-              <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-[#7B8497]">
-                <Building2 size={14} /> {companyName} · Company Trainer
-              </p>
+          {/* Dashboard body only: the shared header and sidebar above remain unchanged. */}
+          <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+            <div className="min-w-0 space-y-5">
+              <InternshipBanner companyName={companyName} />
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} onClick={() => navigate("/company/trainer/students")} />
+                <MetricCard icon={ClipboardList} label="Total Tasks" value={totalTasks} detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`} color={COLORS.green} bg={COLORS.greenSoft} onClick={() => navigate("/company/trainer/tasks")} />
+                <MetricCard icon={UserCheck} label="Pending Applications" value={stats.pendingApplications ?? applications.length} detail="Waiting for your review" color={COLORS.orange} bg={COLORS.orangeSoft} onClick={() => navigate("/company/trainer/applications")} />
+              </div>
+
+              <TaskSubmissionChart tasks={tasks} onViewTasks={() => navigate("/company/trainer/tasks")} />
             </div>
-            <Button
-              variant="gold"
-              onClick={() => navigate("/company/trainer/tasks")}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-bold"
-            >
-              <Plus size={16} /> Create Task
-            </Button>
-          </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <StatCard
-              icon={GraduationCap}
-              label="Total Trainees"
-              value={stats.totalStudents ?? students.length}
-              color={COLORS.primary}
-              bg={COLORS.primarySoft}
-              sub="Assigned to you"
-              onClick={() => navigate("/company/trainer/students")}
-            />
-            <StatCard
-              icon={ClipboardList}
-              label="Tasks"
-              value={(stats.activeTasks ?? 5) + (stats.completedTasks ?? 1)}
-              color={COLORS.green}
-              bg={COLORS.greenSoft}
-              sub={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`}
-              onClick={() => navigate("/company/trainer/tasks")}
-            />
-            <StatCard
-              icon={UserCheck}
-              label="Pending Applications"
-              value={stats.pendingApplications ?? applications.length}
-              color={COLORS.accent}
-              bg={COLORS.accentSoft}
-              sub="Waiting for your review"
-              onClick={() => navigate("/company/trainer/applications")}
-            />
-            <StatCard
-              icon={Clock3}
-              label="Attendance"
-              value={`${stats.attendanceRate ?? 86.7}%`}
-              color={COLORS.primary}
-              bg={COLORS.primarySoft}
-              sub="Average attendance"
-              onClick={() => navigate("/company/trainer/attendance")}
-            />
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-            <InternshipTimeGauge startDate={internship.startDate} endDate={internship.endDate} />
-            <TaskSubmissionChart tasks={tasks} onViewTasks={() => navigate("/company/trainer/tasks")} />
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <AttendanceGauge
-              attendanceRate={stats.attendanceRate}
-              onViewAttendance={() => navigate("/company/trainer/attendance")}
-            />
-            <RecentActivity applications={applications} tasks={tasks} />
-          </div>
-
-          <div className="mt-5">
-            <TraineeOverview
-              students={students}
-              onViewAll={() => navigate("/company/trainer/students")}
-              onOpenStudent={(id) => navigate(`/company/trainer/students/${id}`)}
-            />
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <Card
-              title="Pending Applications"
-              subtitle="Students requesting to join your internship"
-              action={
-                <button
-                  type="button"
-                  onClick={() => navigate("/company/trainer/applications")}
-                  className="text-[10px] font-extrabold text-[#0475FB]"
-                >
-                  View all
-                </button>
-              }
-            >
-              <div className="mt-3 divide-y divide-[#EEF1F5]">
-                {applications.slice(0, 4).map((application) => {
-                  const student = application.student || {};
-                  const name = `${student.user?.firstName || ""} ${student.user?.lastName || ""}`.trim() || "Student";
-                  const busy = actingId === application.id;
-                  return (
-                    <div key={application.id} className="flex items-center justify-between gap-3 py-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EAF3FF] text-[11px] font-extrabold text-[#0475FB]">
-                          {name[0]}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-[11px] font-bold text-[#172033]">{name}</p>
-                          <p className="truncate text-[10px] text-[#7B8497]">{student.major || "—"}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-1.5">
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => action(application.id, "reject")}
-                          className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FEF0F0] text-[#EF4444] disabled:opacity-50"
-                          aria-label={`Reject ${name}`}
-                        >
-                          <X size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => action(application.id, "approve")}
-                          className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EAF9EF] text-[#22C55E] disabled:opacity-50"
-                          aria-label={`Approve ${name}`}
-                        >
-                          <Check size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+            <aside className="min-w-0 space-y-5">
+              <CalendarCard />
+              <QuickActions
+                onCreateTask={() => navigate("/company/trainer/tasks")}
+                onApplications={() => navigate("/company/trainer/applications")}
+                onStudents={() => navigate("/company/trainer/students")}
+              />
+              <div className="relative overflow-hidden rounded-[20px] border border-[#E9E5FF] bg-gradient-to-br from-[#F3F1FF] via-white to-[#F9F7FF] p-5 shadow-[0_8px_30px_rgba(34,42,70,0.04)]">
+                <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#635BFF]/10" />
+                <div className="relative flex items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#EFEEFF] text-[#635BFF]"><Check size={23} /></div>
+                  <div><p className="text-[11px] font-extrabold text-[#172033]">You’re doing great!</p><p className="mt-1 text-[9px] leading-4 text-[#7B8497]">Keep guiding your trainees toward a successful internship.</p></div>
+                </div>
               </div>
-            </Card>
-
-            <Card
-              title="Task Review"
-              subtitle="Assignments with the most work ready to review"
-              action={<FileCheck2 size={17} className="text-[#22C55E]" />}
-            >
-              <div className="mt-3 space-y-2.5">
-                {[...tasks]
-                  .sort((a, b) => Number(b.submittedCount ?? 0) - Number(a.submittedCount ?? 0))
-                  .slice(0, 4)
-                  .map((task) => {
-                    const total = Number(task.totalStudents ?? 24);
-                    const submitted = Number(task.submittedCount ?? 0);
-                    const percent = total ? Math.round((submitted / total) * 100) : 0;
-                    return (
-                      <button
-                        type="button"
-                        key={task.id}
-                        onClick={() => navigate("/company/trainer/tasks")}
-                        className="w-full rounded-xl border border-[#E9EDF4] p-3 text-left transition hover:border-[#CFE1FA] hover:bg-[#FBFDFF]"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="truncate text-[10px] font-bold text-[#344054]">{task.title}</span>
-                          <span className="shrink-0 text-[9px] font-extrabold text-[#0475FB]">{percent}%</span>
-                        </div>
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#EEF1F5]">
-                          <div className="h-full rounded-full bg-[#0475FB]" style={{ width: `${percent}%` }} />
-                        </div>
-                        <p className="mt-1.5 text-[9px] text-[#7B8497]">{submitted} of {total} submissions received</p>
-                      </button>
-                    );
-                  })}
-              </div>
-            </Card>
-          </div>
-
-          <div className="mt-5 flex items-center justify-between border-t border-[#E9EDF4] py-4 text-[10px] font-medium text-[#7B8497]">
-            <span>Manage your internship activities from the trainer workspace.</span>
-            <button
-              type="button"
-              onClick={() => navigate("/company/trainer/tasks")}
-              className="flex items-center gap-1 font-extrabold text-[#0475FB]"
-            >
-              Go to Tasks <ArrowUpRight size={11} />
-            </button>
+            </aside>
           </div>
         </div>
       </main>
