@@ -1,456 +1,208 @@
-// src/components/pages/company-trainer/TrainerDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Users,
+  ArrowUpRight,
+  CalendarDays,
+  CalendarPlus,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
-  UserCheck,
-  Building2,
+  FileText,
   GraduationCap,
   Plus,
-  Check,
-  X,
-  AlertCircle,
-  ArrowUpRight,
-  Settings,
-  Clock3,
+  UserCheck,
+  UserPlus,
 } from "lucide-react";
-
 import Sidebar from "../../layout/Sidebar";
 import PageHeader from "../../common/pagesAssets/PageHeader";
 import { useAuth } from "../../../context/AuthContext";
 import { useToast } from "../../../context/ToastContext";
-import { Button } from "../../common/Button";
 import { trainerAPI } from "../../../services/api";
+import { trainerNavItems, trainerSidebarProps } from "./trainerNavigation";
+import {
+  DUMMY_TRAINER_APPLICATIONS,
+  DUMMY_TRAINER_DASHBOARD,
+  DUMMY_TRAINER_STUDENTS,
+  DUMMY_TRAINER_TASKS,
+} from "./trainerMockData";
 
-// ─── Design Tokens (shared palette, see SKILL.md) ─────────────────
 const COLORS = {
-  primary: "#0475FB",
-  primaryDark: "#035CC9",
-  primarySoft: "#EAF3FF",
-  accent: "#FFAD4E",
-  accentSoft: "#FFF4E5",
-  green: "#22C55E",
-  greenSoft: "#EAF9EF",
-  red: "#EF4444",
-  redSoft: "#FEF0F0",
-  purple: "#8B5CF6",
-  purpleSoft: "#F2EDFF",
-  text: "#172033",
-  muted: "#7B8497",
-  border: "#E9EDF4",
-  background: "#F5F7FB",
+  primary: "#635BFF",
+  primarySoft: "#EFEEFF",
+  green: "#19B978",
+  greenSoft: "#E9FAF3",
+  orange: "#FF9B4A",
+  orangeSoft: "#FFF1E6",
+  pink: "#F45B8A",
+  pinkSoft: "#FFEAF1",
 };
 
-// ─── Navigation ─────────────────────────────────────────────────
-const trainerNavItems = [
-  {
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    path: "/company/trainer/dashboard",
-  },
-  { label: "My Students", icon: Users, path: "/company/trainer/students" },
-  { label: "Tasks", icon: ClipboardList, path: "/company/trainer/tasks" },
-  {
-    label: "Applications",
-    icon: UserCheck,
-    path: "/company/trainer/applications",
-  },
-];
-const trainerFooterItems = [
-  { label: "Settings", icon: Settings, path: "/company/trainer/settings" },
-];
+const Card = ({ title, subtitle, action, children, className = "" }) => (
+  <section className={`rounded-[20px] border bg-white p-5 shadow-[0_8px_30px_rgba(34,42,70,0.05)] ${className}`} style={{ borderColor: "#E9EDF4" }}>
+    {(title || action) && (
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          {title && <h2 className="text-[16px] font-extrabold tracking-[-0.2px] text-[#172033]">{title}</h2>}
+          {subtitle && <p className="mt-1 text-[10px] font-medium text-[#7B8497]">{subtitle}</p>}
+        </div>
+        {action}
+      </div>
+    )}
+    {children}
+  </section>
+);
 
-// ─── Stat Card ──────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, color, bg, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={!onClick}
-    className="rounded-[18px] border bg-white p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-default"
-    style={{ borderColor: COLORS.border }}
-  >
+const MetricCard = ({ icon: Icon, label, value, detail, color, bg, onClick }) => (
+  <button type="button" onClick={onClick} className="group min-h-[155px] rounded-[20px] border bg-white p-5 text-left shadow-[0_8px_30px_rgba(34,42,70,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_35px_rgba(34,42,70,0.09)]" style={{ borderColor: "#E9EDF4" }}>
     <div className="flex items-start justify-between">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#7B8497]">
-          {label}
-        </p>
-        <p className="mt-1 text-[21px] font-extrabold text-[#172033]">
-          {value}
-        </p>
-      </div>
-      <div className="rounded-full p-2" style={{ backgroundColor: bg }}>
-        <Icon size={17} strokeWidth={1.8} style={{ color }} />
-      </div>
+      <span className="flex h-12 w-12 items-center justify-center rounded-[15px]" style={{ backgroundColor: bg, color }}><Icon size={23} /></span>
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7F8FB] text-[#7B8497] transition group-hover:bg-[#EFEEFF] group-hover:text-[#635BFF]"><ArrowUpRight size={15} /></span>
     </div>
+    <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8B94A6]">{label}</p>
+    <p className="mt-1 text-[30px] font-extrabold tracking-[-1px] text-[#172033]">{value}</p>
+    <p className="mt-1 text-[10px] font-semibold text-[#7B8497]">{detail}</p>
   </button>
 );
 
-// ─── Pending Applications Card ─────────────────────────────────
-const PendingApplicationsCard = ({
-  applications,
-  onApprove,
-  onReject,
-  actingId,
-  onViewAll,
-}) => (
-  <div
-    className="rounded-[18px] border bg-white p-5 shadow-sm"
-    style={{ borderColor: COLORS.border }}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-[16px] font-extrabold text-[#172033]">
-          Pending Applications
-        </h3>
-        <p className="mt-1 text-[10px] text-[#7B8497]">
-          Students requesting to join your internship
-        </p>
+function InternshipBanner({ companyName }) {
+  return (
+    <section className="relative h-[142px] overflow-hidden rounded-[22px] bg-gradient-to-r from-[#5146E5] via-[#6657F4] to-[#7568F7] px-7 py-5 text-white shadow-[0_12px_35px_rgba(99,91,255,0.22)] sm:px-8">
+      <div className="absolute -right-8 -top-16 h-44 w-44 rounded-full bg-white/10" />
+      <div className="absolute right-36 -bottom-20 h-44 w-44 rounded-full bg-[#8D85FF]/30" />
+      <div className="absolute right-12 top-7 h-24 w-24 rounded-full bg-white/5" />
+      <div className="relative z-10 max-w-[65%]">
+        <span className="inline-flex rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur-sm">Current Internship</span>
+        <h2 className="mt-3 text-[24px] font-extrabold tracking-[-0.7px] sm:text-[27px]">Frontend Developer Trainer</h2>
+        <p className="mt-2 text-[11px] font-medium text-white/85 sm:text-[12px]">{companyName}<span className="mx-2 text-white/50">•</span>Field Training<span className="mx-2 text-white/50">•</span>Week 8 of 12</p>
       </div>
-      <button
-        onClick={onViewAll}
-        className="text-[10px] font-extrabold text-[#0475FB] hover:underline"
-      >
-        View all
-      </button>
-    </div>
+      <div className="absolute bottom-3 right-5 hidden h-[112px] w-[210px] sm:block" aria-hidden="true">
+        <div className="absolute bottom-5 right-24 h-14 w-20 rotate-[-2deg] rounded-xl border border-white/30 bg-white/20 p-2 shadow-lg backdrop-blur-sm">
+          <div className="h-1.5 w-7 rounded-full bg-white/65" /><div className="mt-2 h-1.5 w-12 rounded-full bg-white/40" /><div className="mt-2 h-1.5 w-9 rounded-full bg-white/30" />
+        </div>
+        <div className="absolute bottom-0 right-2 h-[105px] w-[105px]">
+          <div className="absolute bottom-0 left-4 h-14 w-20 rounded-[18px] bg-gradient-to-br from-[#FFB56B] to-[#F07C4D] shadow-xl" />
+          <div className="absolute bottom-3 left-0 h-12 w-7 -rotate-12 rounded-full bg-[#5146E5]" />
+          <div className="absolute bottom-2 right-0 h-10 w-7 rotate-12 rounded-full bg-[#5146E5]" />
+          <div className="absolute left-7 top-8 h-12 w-12 rounded-full bg-[#FFD2A9] shadow-md" />
+          <div className="absolute left-6 top-5 h-6 w-14 -rotate-6 rounded-full bg-[#3A2924]" />
+          <span className="absolute left-[35px] top-[27px] h-1.5 w-1.5 rounded-full bg-[#172033]" /><span className="absolute left-[48px] top-[27px] h-1.5 w-1.5 rounded-full bg-[#172033]" />
+          <div className="absolute left-[38px] top-[35px] h-1 w-4 rounded-full bg-[#E58C76]" />
+          <div className="absolute bottom-0 left-7 h-3 w-9 rounded-full bg-[#252B54]" />
+          <div className="absolute bottom-0 right-2 h-3 w-9 rounded-full bg-[#252B54]" />
+        </div>
+      </div>
+    </section>
+  );
+}
 
-    {applications.length === 0 ? (
-      <div className="mt-6 flex flex-col items-center justify-center py-8 text-center">
-        <UserCheck size={28} className="text-[#C9D0DB]" />
-        <p className="mt-3 text-[12px] font-medium text-[#7B8497]">
-          No pending applications right now
-        </p>
+function TaskSubmissionChart({ tasks, onViewTasks }) {
+  const rows = tasks.slice(0, 6).map((task) => {
+    const total = Number(task.totalStudents ?? task.assignedStudentsCount ?? 24);
+    const submitted = Math.min(total, Number(task.submittedCount ?? task.submissionsCount ?? 0));
+    return { ...task, total, submitted, percent: total ? Math.round((submitted / total) * 100) : 0 };
+  });
+  return (
+    <Card title="Tasks Submission Overview" subtitle="Track trainee progress across current assignments" action={<button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">This Month <span className="ml-1">⌄</span></button>} className="min-h-[380px]">
+      <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]"><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#635BFF]" />Submitted</span><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#DCDCF8]" />Remaining</span></div>
+      <div className="mt-5 flex gap-3">
+        <div className="flex h-[215px] w-8 flex-col justify-between pb-8 text-[8px] font-semibold text-[#A0A8B8]"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+        <div className="relative flex h-[215px] min-w-0 flex-1 items-end justify-around gap-2 border-b border-[#EEF1F5] bg-[linear-gradient(to_bottom,transparent_24%,#F2F3F7_25%,transparent_26%,transparent_49%,#F2F3F7_50%,transparent_51%,transparent_74%,#F2F3F7_75%,transparent_76%)]">
+          {rows.map((task, index) => {
+            const submittedHeight = Math.max(12, (task.percent / 100) * 165);
+            const remainingHeight = Math.max(0, 165 - submittedHeight);
+            return <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"><span className="mb-2 text-[9px] font-extrabold text-[#344054]">{task.percent}%</span><div className="flex w-full max-w-[42px] flex-col justify-end overflow-hidden rounded-t-[8px]" style={{ height: 165 }}><div className="w-full bg-gradient-to-t from-[#635BFF] to-[#817BFF]" style={{ height: submittedHeight }} />{remainingHeight > 0 && <div className="w-full bg-[#DCDCF8]" style={{ height: remainingHeight }} />}</div><span className="mt-3 w-full truncate text-center text-[8px] font-bold text-[#7B8497]" title={task.title}>T{index + 1}</span></div>;
+          })}
+        </div>
       </div>
-    ) : (
-      <div className="mt-4 divide-y divide-[#E9EDF4]">
-        {applications.slice(0, 5).map((app) => {
-          const name =
-            `${app.student?.user?.firstName || ""} ${app.student?.user?.lastName || ""}`.trim() ||
-            "Student";
-          const major = app.student?.major || "—";
-          const busy = actingId === app.id;
-          return (
-            <div
-              key={app.id}
-              className="flex items-center justify-between gap-3 py-3 first:pt-1 last:pb-1"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
-                  style={{ backgroundColor: COLORS.primary }}
-                >
-                  {name.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-[12px] font-bold text-[#172033]">
-                    {name}
-                  </p>
-                  <p className="truncate text-[10px] text-[#7B8497]">{major}</p>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => onApprove(app.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EAF9EF] text-[#22C55E] transition hover:bg-[#D6F3DD] disabled:opacity-50"
-                  title="Approve"
-                >
-                  <Check size={14} />
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => onReject(app.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FEF0F0] text-[#EF4444] transition hover:bg-[#FDE1E1] disabled:opacity-50"
-                  title="Reject"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </div>
-);
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">{rows.map((task, index) => <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]"><span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span><span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span></div>)}</div>
+    </Card>
+  );
+}
 
-// ─── My Students Card ───────────────────────────────────────────
-const MyStudentsCard = ({ students, onViewAll }) => (
-  <div
-    className="rounded-[18px] border bg-white p-5 shadow-sm"
-    style={{ borderColor: COLORS.border }}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-[16px] font-extrabold text-[#172033]">
-          My Students
-        </h3>
-        <p className="mt-1 text-[10px] text-[#7B8497]">
-          Interns currently under your supervision
-        </p>
-      </div>
-      <button
-        onClick={onViewAll}
-        className="text-[10px] font-extrabold text-[#0475FB] hover:underline"
-      >
-        View all
-      </button>
-    </div>
+const EVENTS = [
+  { date: 8, title: "Weekly Mentor Meeting", time: "10:00 AM", color: COLORS.primary, bg: COLORS.primarySoft },
+  { date: 10, title: "Project Review", time: "02:00 PM", color: COLORS.green, bg: COLORS.greenSoft },
+  { date: 15, title: "Weekly Progress Sync", time: "11:30 AM", color: COLORS.orange, bg: COLORS.orangeSoft },
+];
 
-    {students.length === 0 ? (
-      <div className="mt-6 flex flex-col items-center justify-center py-8 text-center">
-        <GraduationCap size={28} className="text-[#C9D0DB]" />
-        <p className="mt-3 text-[12px] font-medium text-[#7B8497]">
-          No students assigned yet
-        </p>
-      </div>
-    ) : (
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {students.slice(0, 6).map((s) => {
-          const name =
-            `${s.student?.user?.firstName || ""} ${s.student?.user?.lastName || ""}`.trim() ||
-            "Student";
-          return (
-            <div
-              key={s.id}
-              className="flex items-center gap-3 rounded-xl border border-[#E9EDF4] p-3"
-            >
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white"
-                style={{ backgroundColor: COLORS.accent }}
-              >
-                {name.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-[12px] font-bold text-[#172033]">
-                  {name}
-                </p>
-                <p className="truncate text-[10px] text-[#7B8497]">
-                  {s.student?.major || "—"}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </div>
-);
+function CalendarCard() {
+  const year = 2026; const month = 8; const today = 5;
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = Array.from({ length: Math.ceil((firstDay + daysInMonth) / 7) * 7 }, (_, i) => { const day = i - firstDay + 1; return day > 0 && day <= daysInMonth ? day : null; });
+  const eventDates = new Set(EVENTS.map((event) => event.date));
+  return (
+    <Card title="Calendar" subtitle="Your upcoming internship schedule">
+      <div className="mt-4 flex items-center justify-between"><button type="button" className="rounded-full p-1.5 text-[#7B8497] hover:bg-[#F7F8FB]"><ChevronLeft size={16} /></button><h3 className="text-[14px] font-extrabold text-[#172033]">September 2026</h3><button type="button" className="rounded-full p-1.5 text-[#7B8497] hover:bg-[#F7F8FB]"><ChevronRight size={16} /></button></div>
+      <div className="mt-4 grid grid-cols-7 text-center text-[9px] font-extrabold uppercase text-[#9AA2B1]">{['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => <span key={day} className="py-1">{day}</span>)}</div>
+      <div className="mt-1 grid grid-cols-7 gap-y-1 text-center">{cells.map((day, index) => <div key={index} className="flex h-9 items-center justify-center">{day && <div className={`relative flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${day === today ? 'bg-[#635BFF] text-white shadow-[0_4px_12px_rgba(99,91,255,0.28)]' : 'text-[#344054]'}`}>{day}{eventDates.has(day) && day !== today && <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[#635BFF]" />}</div>}</div>)}</div>
+      <div className="mt-4 border-t border-[#EEF1F5] pt-4"><div className="flex items-center justify-between"><p className="text-[12px] font-extrabold text-[#172033]">Upcoming Events</p><CalendarDays size={15} className="text-[#635BFF]" /></div><div className="mt-3 space-y-2.5">{EVENTS.map((event) => <div key={event.date} className="flex items-center gap-3 rounded-[14px] border border-[#EEF1F5] bg-white p-2.5 shadow-[0_4px_15px_rgba(34,42,70,0.035)]"><div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-[11px]" style={{ backgroundColor: event.bg, color: event.color }}><span className="text-[8px] font-extrabold uppercase">Sep</span><span className="text-[14px] font-extrabold leading-4">{event.date}</span></div><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-extrabold text-[#344054]">{event.title}</p><p className="mt-0.5 text-[9px] font-medium text-[#7B8497]">Sep {event.date}, 2026 · {event.time}</p></div><span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: event.color }} /></div>)}</div><button type="button" className="mt-3 flex w-full items-center justify-center gap-1 text-[9px] font-extrabold text-[#635BFF]">View all events <ArrowUpRight size={11} /></button></div>
+    </Card>
+  );
+}
 
-// ─── MAIN COMPONENT ─────────────────────────────────────────────
+function QuickActions({ onCreateTask, onApplications, onStudents }) {
+  const actions = [
+    { icon: Plus, title: "Create New Task", subtitle: "Assign a new task", color: COLORS.primary, bg: COLORS.primarySoft, onClick: onCreateTask },
+    { icon: UserPlus, title: "Add Trainee", subtitle: "Manage your trainees", color: COLORS.green, bg: COLORS.greenSoft, onClick: onStudents },
+    { icon: FileText, title: "Review Applications", subtitle: "Check new applications", color: COLORS.orange, bg: COLORS.orangeSoft, onClick: onApplications },
+    { icon: CalendarPlus, title: "Schedule Meeting", subtitle: "Plan a trainer meeting", color: COLORS.pink, bg: COLORS.pinkSoft, onClick: () => {} },
+  ];
+  return <Card title="Quick Actions" subtitle="Common trainer tasks"><div className="mt-4 grid grid-cols-2 gap-2.5">{actions.map((item) => { const Icon = item.icon; return <button key={item.title} type="button" onClick={item.onClick} className="group rounded-[15px] border border-[#EEF1F5] bg-[#FCFCFE] p-3 text-left transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_8px_20px_rgba(34,42,70,0.06)]"><span className="flex h-9 w-9 items-center justify-center rounded-[11px]" style={{ backgroundColor: item.bg, color: item.color }}><Icon size={17} /></span><p className="mt-2.5 text-[10px] font-extrabold text-[#344054]">{item.title}</p><p className="mt-0.5 text-[8px] leading-3 text-[#8B94A6]">{item.subtitle}</p></button>; })}</div></Card>;
+}
+
 export default function TrainerDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const { showToast } = useToast();
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [dashboard, setDashboard] = useState(null);
-  const [applications, setApplications] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dashboard, setDashboard] = useState(DUMMY_TRAINER_DASHBOARD);
+  const [applications, setApplications] = useState(DUMMY_TRAINER_APPLICATIONS);
+  const [students, setStudents] = useState(DUMMY_TRAINER_STUDENTS);
+  const [tasks, setTasks] = useState(DUMMY_TRAINER_TASKS);
   const [actingId, setActingId] = useState(null);
-
-  const fullName =
-    `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Trainer";
-  const trainerUser = {
-    name: fullName,
-    role: "Company Trainer",
-    avatar: user?.profileImage || "",
-  };
-
-  const handleSignOut = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [dashboardData, applicationsData, studentsData] = await Promise.all(
-        [
-          trainerAPI.getDashboard(),
-          trainerAPI.getPendingApplications(1, 5),
-          trainerAPI.getMyStudents(1, 6),
-        ],
-      );
-      setDashboard(dashboardData || {});
-      setApplications(applicationsData?.data || applicationsData || []);
-      setStudents(studentsData?.data || studentsData || []);
-    } catch (err) {
-      console.error("Failed to fetch trainer dashboard:", err);
-      setError(err?.message || "Failed to load dashboard data.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fullName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Trainer";
+  const trainerUser = { name: fullName, role: "Company Trainer", avatar: user?.profileImage || "" };
 
   useEffect(() => {
-    fetchData();
+    setDashboard(DUMMY_TRAINER_DASHBOARD); setApplications(DUMMY_TRAINER_APPLICATIONS); setStudents(DUMMY_TRAINER_STUDENTS); setTasks(DUMMY_TRAINER_TASKS); setLoading(false);
   }, []);
 
-  const handleApprove = async (applicationId) => {
-    setActingId(applicationId);
+  const action = async (id, type) => {
+    setActingId(id);
     try {
-      await trainerAPI.approveApplication(applicationId);
-      setApplications((prev) => prev.filter((a) => a.id !== applicationId));
-      showToast("Application approved.", "success");
-      fetchData();
-    } catch (err) {
-      showToast(err?.message || "Failed to approve application.", "error");
-    } finally {
-      setActingId(null);
-    }
+      if (!String(id).startsWith("dummy-")) { if (type === "approve") await trainerAPI.approveApplication(id); else await trainerAPI.rejectApplication(id); }
+      setApplications((previous) => previous.filter((application) => application.id !== id));
+      showToast(type === "approve" ? "Application approved." : "Application rejected.", "success");
+    } catch (error) { showToast(error?.message || "Action failed.", "error"); } finally { setActingId(null); }
   };
 
-  const handleReject = async (applicationId) => {
-    setActingId(applicationId);
-    try {
-      await trainerAPI.rejectApplication(applicationId);
-      setApplications((prev) => prev.filter((a) => a.id !== applicationId));
-      showToast("Application rejected.", "success");
-    } catch (err) {
-      showToast(err?.message || "Failed to reject application.", "error");
-    } finally {
-      setActingId(null);
-    }
-  };
-
+  const stats = dashboard?.stats || {};
   const companyName = dashboard?.company?.name || "Your Company";
-  const stats = {
-    students: dashboard?.stats?.totalStudents ?? students.length,
-    pendingApplications:
-      dashboard?.stats?.pendingApplications ?? applications.length,
-    activeTasks: dashboard?.stats?.activeTasks ?? 0,
-    completedTasks: dashboard?.stats?.completedTasks ?? 0,
-  };
+  const signOut = () => { logout(); navigate("/login"); };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-gradient-to-b from-[#F2F7FF] via-[#F8FAFC] to-[#FFF8F4] font-['Inter'] relative">
-      <div className="pointer-events-none absolute top-1/4 -left-20 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-1/4 -right-20 h-96 w-96 rounded-full bg-orange-400/10 blur-3xl" />
-      <div className="pointer-events-none absolute top-10 right-1/3 h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl" />
-
-      <Sidebar
-        navItems={trainerNavItems}
-        footerItems={trainerFooterItems}
-        user={trainerUser}
-        profilePath="/company/trainer/profile"
-        onSignOut={handleSignOut}
-        chatPath="/company/trainer/chats"
-        brandPath="/company/trainer/dashboard"
-        storageKey="sidebar-company-trainer"
-      />
-
-      <main className="flex-1 overflow-y-auto relative z-10">
-        <div className="mx-auto w-full max-w-[1240px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
-          <PageHeader
-            loading={loading}
-            profile={user}
-            fullName={fullName}
-            studentUser={trainerUser}
-            searchValue=""
-            onSearchChange={() => {}}
-            chatBadge={0}
-            notificationBadge={stats.pendingApplications}
-          />
-
-          {error && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-[#F8D5D5] bg-[#FEF7F7] px-4 py-3 text-[10px] text-[#B42318]">
-              <AlertCircle size={14} className="mt-0.5 shrink-0" />
-              <span>{error}</span>
+    <div className="relative flex h-screen w-full overflow-hidden bg-[#F7F8FC] font-['Inter']">
+      <Sidebar navItems={trainerNavItems} footerItems={[]} user={trainerUser} {...trainerSidebarProps} onSignOut={signOut} />
+      <main className="relative z-10 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-[1320px] px-5 py-5 sm:px-7 lg:px-8 lg:py-7">
+          <PageHeader loading={loading} profile={user} fullName={fullName} studentUser={trainerUser} searchValue="" onSearchChange={() => {}} chatBadge={0} notificationBadge={stats.pendingApplications ?? applications.length} />
+          <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+            <div className="min-w-0 space-y-5">
+              <InternshipBanner companyName={companyName} />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} onClick={() => navigate("/company/trainer/students")} />
+                <MetricCard icon={ClipboardList} label="Total Tasks" value={Number(stats.activeTasks ?? 5) + Number(stats.completedTasks ?? 1)} detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`} color={COLORS.green} bg={COLORS.greenSoft} onClick={() => navigate("/company/trainer/tasks")} />
+                <MetricCard icon={UserCheck} label="Pending Applications" value={stats.pendingApplications ?? applications.length} detail="Waiting for your review" color={COLORS.orange} bg={COLORS.orangeSoft} onClick={() => navigate("/company/trainer/applications")} />
+              </div>
+              <TaskSubmissionChart tasks={tasks} onViewTasks={() => navigate("/company/trainer/tasks")} />
             </div>
-          )}
-
-          {/* Welcome header */}
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="mb-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#7B8497]">
-                Trainer Dashboard
-              </p>
-              <h1 className="text-[25px] font-extrabold tracking-[-0.6px] text-[#172033]">
-                Welcome back, {fullName.split(" ")[0]}
-              </h1>
-              <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-[#7B8497]">
-                <Building2 size={14} /> {companyName} · Company Trainer
-              </p>
-            </div>
-            <Button
-              variant="gold"
-              onClick={() => navigate("/company/trainer/tasks")}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-bold"
-            >
-              <Plus size={16} strokeWidth={2} />
-              Create Task
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard
-              icon={GraduationCap}
-              label="My Students"
-              value={loading ? "—" : stats.students}
-              color={COLORS.primary}
-              bg={COLORS.primarySoft}
-              onClick={() => navigate("/company/trainer/students")}
-            />
-            <StatCard
-              icon={UserCheck}
-              label="Pending Applications"
-              value={loading ? "—" : stats.pendingApplications}
-              color={COLORS.accent}
-              bg={COLORS.accentSoft}
-              onClick={() => navigate("/company/trainer/applications")}
-            />
-            <StatCard
-              icon={ClipboardList}
-              label="Active Tasks"
-              value={loading ? "—" : stats.activeTasks}
-              color={COLORS.purple}
-              bg={COLORS.purpleSoft}
-              onClick={() => navigate("/company/trainer/tasks")}
-            />
-            <StatCard
-              icon={Clock3}
-              label="Completed Tasks"
-              value={loading ? "—" : stats.completedTasks}
-              color={COLORS.green}
-              bg={COLORS.greenSoft}
-              onClick={() => navigate("/company/trainer/tasks")}
-            />
-          </div>
-
-          {/* Main grid */}
-          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <PendingApplicationsCard
-              applications={applications}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              actingId={actingId}
-              onViewAll={() => navigate("/company/trainer/applications")}
-            />
-            <MyStudentsCard
-              students={students}
-              onViewAll={() => navigate("/company/trainer/students")}
-            />
-          </div>
-
-          <div className="mt-6 flex items-center justify-between border-t border-[#E9EDF4] pt-4 text-[10px] font-medium text-[#7B8497]">
-            <span>
-              Tadreeby helps you manage your interns' training the smart way.
-            </span>
-            <button
-              type="button"
-              onClick={() => navigate("/company/trainer/tasks")}
-              className="flex items-center gap-1 font-extrabold text-[#0475FB] hover:underline"
-            >
-              Go to Tasks <ArrowUpRight size={11} />
-            </button>
+            <aside className="min-w-0 space-y-5">
+              <CalendarCard />
+              <QuickActions onCreateTask={() => navigate("/company/trainer/tasks")} onApplications={() => navigate("/company/trainer/applications")} onStudents={() => navigate("/company/trainer/students")} />
+              <div className="relative overflow-hidden rounded-[20px] border border-[#E9E5FF] bg-gradient-to-br from-[#F3F1FF] via-white to-[#F9F7FF] p-5 shadow-[0_8px_30px_rgba(34,42,70,0.04)]"><div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#635BFF]/10" /><div className="relative flex items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#EFEEFF] text-[#635BFF]"><Check size={23} /></div><div><p className="text-[11px] font-extrabold text-[#172033]">You’re doing great!</p><p className="mt-1 text-[9px] leading-4 text-[#7B8497]">Keep guiding your trainees toward a successful internship.</p></div></div></div>
+            </aside>
           </div>
         </div>
       </main>
