@@ -67,31 +67,26 @@ const MetricCard = ({ icon: Icon, label, value, detail, color, bg, onClick }) =>
 
 function InternshipBanner({ companyName }) {
   return (
-    <section className="relative h-[142px] overflow-hidden rounded-[22px] bg-gradient-to-r from-[#5146E5] via-[#6657F4] to-[#7568F7] px-7 py-5 text-white shadow-[0_12px_35px_rgba(99,91,255,0.22)] sm:px-8">
-      <div className="absolute -right-8 -top-16 h-44 w-44 rounded-full bg-white/10" />
-      <div className="absolute right-36 -bottom-20 h-44 w-44 rounded-full bg-[#8D85FF]/30" />
-      <div className="absolute right-12 top-7 h-24 w-24 rounded-full bg-white/5" />
-      <div className="relative z-10 max-w-[65%]">
-        <span className="inline-flex rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur-sm">Current Internship</span>
+    <section
+      className="relative h-[142px] overflow-hidden rounded-[22px] px-7 py-5 text-white sm:px-8"
+      style={{
+        background: "linear-gradient(145deg, rgb(16, 43, 79) 0%, rgb(18, 62, 112) 60%, rgb(4, 117, 251) 140%)",
+        boxShadow: "rgba(15, 45, 80, 0.16) 0px 10px 28px",
+      }}
+    >
+      <div className="absolute -right-12 -top-20 h-52 w-52 rounded-full bg-white/[0.07]" />
+      <div className="absolute right-[20%] -bottom-24 h-52 w-52 rounded-full bg-[#0475FB]/20" />
+      <div className="relative z-10 max-w-[62%]">
+        <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em]">Current Internship</span>
         <h2 className="mt-3 text-[24px] font-extrabold tracking-[-0.7px] sm:text-[27px]">Frontend Developer Trainer</h2>
-        <p className="mt-2 text-[11px] font-medium text-white/85 sm:text-[12px]">{companyName}<span className="mx-2 text-white/50">•</span>Field Training<span className="mx-2 text-white/50">•</span>Week 8 of 12</p>
+        <p className="mt-2 text-[11px] font-medium text-white/80 sm:text-[12px]">{companyName}<span className="mx-2 text-white/45">•</span>Field Training<span className="mx-2 text-white/45">•</span>Week 8 of 12</p>
       </div>
-      <div className="absolute bottom-3 right-5 hidden h-[112px] w-[210px] sm:block" aria-hidden="true">
-        <div className="absolute bottom-5 right-24 h-14 w-20 rotate-[-2deg] rounded-xl border border-white/30 bg-white/20 p-2 shadow-lg backdrop-blur-sm">
-          <div className="h-1.5 w-7 rounded-full bg-white/65" /><div className="mt-2 h-1.5 w-12 rounded-full bg-white/40" /><div className="mt-2 h-1.5 w-9 rounded-full bg-white/30" />
-        </div>
-        <div className="absolute bottom-0 right-2 h-[105px] w-[105px]">
-          <div className="absolute bottom-0 left-4 h-14 w-20 rounded-[18px] bg-gradient-to-br from-[#FFB56B] to-[#F07C4D] shadow-xl" />
-          <div className="absolute bottom-3 left-0 h-12 w-7 -rotate-12 rounded-full bg-[#5146E5]" />
-          <div className="absolute bottom-2 right-0 h-10 w-7 rotate-12 rounded-full bg-[#5146E5]" />
-          <div className="absolute left-7 top-8 h-12 w-12 rounded-full bg-[#FFD2A9] shadow-md" />
-          <div className="absolute left-6 top-5 h-6 w-14 -rotate-6 rounded-full bg-[#3A2924]" />
-          <span className="absolute left-[35px] top-[27px] h-1.5 w-1.5 rounded-full bg-[#172033]" /><span className="absolute left-[48px] top-[27px] h-1.5 w-1.5 rounded-full bg-[#172033]" />
-          <div className="absolute left-[38px] top-[35px] h-1 w-4 rounded-full bg-[#E58C76]" />
-          <div className="absolute bottom-0 left-7 h-3 w-9 rounded-full bg-[#252B54]" />
-          <div className="absolute bottom-0 right-2 h-3 w-9 rounded-full bg-[#252B54]" />
-        </div>
-      </div>
+      <img
+        src="/assets/trainer-dashboard-character.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 right-1 z-[2] hidden h-[190px] w-auto max-w-[48%] object-contain object-bottom sm:block"
+      />
     </section>
   );
 }
@@ -102,20 +97,50 @@ function TaskSubmissionChart({ tasks, onViewTasks }) {
     const submitted = Math.min(total, Number(task.submittedCount ?? task.submissionsCount ?? 0));
     return { ...task, total, submitted, percent: total ? Math.round((submitted / total) * 100) : 0 };
   });
+
   return (
-    <Card title="Tasks Submission Overview" subtitle="Track trainee progress across current assignments" action={<button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">This Month <span className="ml-1">⌄</span></button>} className="min-h-[380px]">
-      <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]"><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#635BFF]" />Submitted</span><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[#DCDCF8]" />Remaining</span></div>
-      <div className="mt-5 flex gap-3">
-        <div className="flex h-[215px] w-8 flex-col justify-between pb-8 text-[8px] font-semibold text-[#A0A8B8]"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
-        <div className="relative flex h-[215px] min-w-0 flex-1 items-end justify-around gap-2 border-b border-[#EEF1F5] bg-[linear-gradient(to_bottom,transparent_24%,#F2F3F7_25%,transparent_26%,transparent_49%,#F2F3F7_50%,transparent_51%,transparent_74%,#F2F3F7_75%,transparent_76%)]">
+    <Card
+      title="Tasks Submission Overview"
+      subtitle="Track trainee progress across current assignments"
+      action={<button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">This Month <span className="ml-1">⌄</span></button>}
+      className="min-h-[390px]"
+    >
+      <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]">
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#315BFF]" />Submitted</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#E8EAF8]" />Remaining</span>
+      </div>
+
+      <div className="mt-5 flex gap-4">
+        <div className="flex h-[250px] w-8 flex-col justify-between pb-9 text-[8px] font-semibold text-[#A0A8B8]">
+          <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
+        </div>
+        <div className="relative flex h-[250px] min-w-0 flex-1 items-end justify-between gap-3 border-b border-[#EEF1F5] bg-[linear-gradient(to_bottom,transparent_24.5%,#F0F2F6_25%,transparent_25.5%,transparent_49.5%,#F0F2F6_50%,transparent_50.5%,transparent_74.5%,#F0F2F6_75%,transparent_75.5%)] px-2 sm:gap-5 sm:px-4">
           {rows.map((task, index) => {
-            const submittedHeight = Math.max(12, (task.percent / 100) * 165);
-            const remainingHeight = Math.max(0, 165 - submittedHeight);
-            return <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"><span className="mb-2 text-[9px] font-extrabold text-[#344054]">{task.percent}%</span><div className="flex w-full max-w-[42px] flex-col justify-end overflow-hidden rounded-t-[8px]" style={{ height: 165 }}><div className="w-full bg-gradient-to-t from-[#635BFF] to-[#817BFF]" style={{ height: submittedHeight }} />{remainingHeight > 0 && <div className="w-full bg-[#DCDCF8]" style={{ height: remainingHeight }} />}</div><span className="mt-3 w-full truncate text-center text-[8px] font-bold text-[#7B8497]" title={task.title}>T{index + 1}</span></div>;
+            const submittedHeight = (task.percent / 100) * 190;
+            const remainingHeight = ((100 - task.percent) / 100) * 190;
+            const label = task.title?.replace(/weekly report\s*[–-]\s*/i, "Week ") || `Task ${index + 1}`;
+            return (
+              <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+                <span className="mb-2 text-[9px] font-extrabold text-[#172033]">{task.percent}%</span>
+                <div className="flex h-[190px] w-[34px] flex-col justify-end overflow-hidden rounded-t-[9px] bg-[#F1F2FA] shadow-inner sm:w-[42px]">
+                  <div className="w-full bg-gradient-to-t from-[#315BFF] to-[#6479FF] transition-all duration-500" style={{ height: `${submittedHeight}px` }} />
+                  {remainingHeight > 0 && <div className="w-full bg-[#E4E6F7]" style={{ height: `${remainingHeight}px` }} />}
+                </div>
+                <span className="mt-3 line-clamp-2 h-7 w-[58px] text-center text-[8px] font-bold leading-3 text-[#667085] sm:w-[72px]" title={task.title}>{label}</span>
+              </div>
+            );
           })}
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">{rows.map((task, index) => <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]"><span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span><span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span></div>)}</div>
+
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">
+        {rows.map((task, index) => (
+          <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]">
+            <span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span>
+            <span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }
@@ -190,6 +215,11 @@ export default function TrainerDashboard() {
           <PageHeader loading={loading} profile={user} fullName={fullName} studentUser={trainerUser} searchValue="" onSearchChange={() => {}} chatBadge={0} notificationBadge={stats.pendingApplications ?? applications.length} />
           <div className="mt-6 grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
             <div className="min-w-0 space-y-5">
+              <div className="px-1 pb-0.5">
+                <p className="text-[12px] font-extrabold tracking-[0.01em] text-[#5C667A]">Trainer Dashboard</p>
+                <h1 className="mt-1 text-[30px] font-extrabold tracking-[-1.1px] text-[#101828] sm:text-[34px]">Welcome back, {fullName}</h1>
+                <p className="mt-1.5 text-[13px] font-semibold text-[#667085]">Full Stack developer <span className="mx-2 text-[#B0B7C3]">·</span> Atlas Company</p>
+              </div>
               <InternshipBanner companyName={companyName} />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <MetricCard icon={GraduationCap} label="Total Trainees" value={stats.totalStudents ?? students.length} detail="Currently assigned to you" color={COLORS.primary} bg={COLORS.primarySoft} onClick={() => navigate("/company/trainer/students")} />
