@@ -155,7 +155,7 @@ function CalendarCard() {
   const cells = Array.from({ length: Math.ceil((firstDay + daysInMonth) / 7) * 7 }, (_, i) => { const day = i - firstDay + 1; return day > 0 && day <= daysInMonth ? day : null; });
   const eventDates = new Set(EVENTS.map((event) => event.date));
   return (
-    <Card title="Calendar" subtitle="Your upcoming internship schedule">
+    <Card title="Calendar" subtitle="Your upcoming internship schedule" className="sticky top-0 z-20">
       <div className="mt-4 flex items-center justify-between"><button type="button" className="rounded-full p-1.5 text-[#7B8497] hover:bg-[#F7F8FB]"><ChevronLeft size={16} /></button><h3 className="text-[14px] font-extrabold text-[#172033]">September 2026</h3><button type="button" className="rounded-full p-1.5 text-[#7B8497] hover:bg-[#F7F8FB]"><ChevronRight size={16} /></button></div>
       <div className="mt-4 grid grid-cols-7 text-center text-[9px] font-extrabold uppercase text-[#9AA2B1]">{['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => <span key={day} className="py-1">{day}</span>)}</div>
       <div className="mt-1 grid grid-cols-7 gap-y-1 text-center">{cells.map((day, index) => <div key={index} className="flex h-9 items-center justify-center">{day && <div className={`relative flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ${day === today ? 'bg-[#635BFF] text-white shadow-[0_4px_12px_rgba(99,91,255,0.28)]' : 'text-[#344054]'}`}>{day}{eventDates.has(day) && day !== today && <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[#635BFF]" />}</div>}</div>)}</div>
