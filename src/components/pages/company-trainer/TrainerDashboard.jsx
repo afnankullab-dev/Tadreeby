@@ -85,7 +85,7 @@ function InternshipBanner({ companyName }) {
         src="/assets/trainer-dashboard-character.png"
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 right-1 z-[2] hidden h-[190px] w-auto max-w-[48%] object-contain object-bottom sm:block"
+        className="pointer-events-none absolute bottom-0 right-[-4px] z-[2] hidden h-[146px] w-auto max-w-[46%] object-contain object-bottom sm:block"
       />
     </section>
   );
@@ -99,48 +99,23 @@ function TaskSubmissionChart({ tasks, onViewTasks }) {
   });
 
   return (
-    <Card
-      title="Tasks Submission Overview"
-      subtitle="Track trainee progress across current assignments"
-      action={<button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">This Month <span className="ml-1">⌄</span></button>}
-      className="min-h-[390px]"
-    >
+    <Card title="Tasks Submission Overview" subtitle="Track trainee progress across current assignments" action={<button type="button" onClick={onViewTasks} className="rounded-lg border border-[#E4E8EF] bg-white px-3 py-2 text-[10px] font-bold text-[#596274] hover:bg-[#F7F9FC]">This Month <span className="ml-1">⌄</span></button>} className="min-h-[390px]">
       <div className="mt-5 flex items-center gap-5 text-[10px] font-semibold text-[#596274]">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#315BFF]" />Submitted</span>
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[4px] bg-[#E8EAF8]" />Remaining</span>
       </div>
-
       <div className="mt-5 flex gap-4">
-        <div className="flex h-[250px] w-8 flex-col justify-between pb-9 text-[8px] font-semibold text-[#A0A8B8]">
-          <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
-        </div>
+        <div className="flex h-[250px] w-8 flex-col justify-between pb-9 text-[8px] font-semibold text-[#A0A8B8]"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
         <div className="relative flex h-[250px] min-w-0 flex-1 items-end justify-between gap-3 border-b border-[#EEF1F5] bg-[linear-gradient(to_bottom,transparent_24.5%,#F0F2F6_25%,transparent_25.5%,transparent_49.5%,#F0F2F6_50%,transparent_50.5%,transparent_74.5%,#F0F2F6_75%,transparent_75.5%)] px-2 sm:gap-5 sm:px-4">
           {rows.map((task, index) => {
             const submittedHeight = (task.percent / 100) * 190;
             const remainingHeight = ((100 - task.percent) / 100) * 190;
             const label = task.title?.replace(/weekly report\s*[–-]\s*/i, "Week ") || `Task ${index + 1}`;
-            return (
-              <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end">
-                <span className="mb-2 text-[9px] font-extrabold text-[#172033]">{task.percent}%</span>
-                <div className="flex h-[190px] w-[34px] flex-col justify-end overflow-hidden rounded-t-[9px] bg-[#F1F2FA] shadow-inner sm:w-[42px]">
-                  <div className="w-full bg-gradient-to-t from-[#315BFF] to-[#6479FF] transition-all duration-500" style={{ height: `${submittedHeight}px` }} />
-                  {remainingHeight > 0 && <div className="w-full bg-[#E4E6F7]" style={{ height: `${remainingHeight}px` }} />}
-                </div>
-                <span className="mt-3 line-clamp-2 h-7 w-[58px] text-center text-[8px] font-bold leading-3 text-[#667085] sm:w-[72px]" title={task.title}>{label}</span>
-              </div>
-            );
+            return <div key={task.id || index} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"><span className="mb-2 text-[9px] font-extrabold text-[#172033]">{task.percent}%</span><div className="flex h-[190px] w-[34px] flex-col justify-end overflow-hidden rounded-t-[9px] bg-[#F1F2FA] shadow-inner sm:w-[42px]"><div className="w-full bg-gradient-to-t from-[#315BFF] to-[#6479FF] transition-all duration-500" style={{ height: `${submittedHeight}px` }} />{remainingHeight > 0 && <div className="w-full bg-[#E4E6F7]" style={{ height: `${remainingHeight}px` }} />}</div><span className="mt-3 line-clamp-2 h-7 w-[58px] text-center text-[8px] font-bold leading-3 text-[#667085] sm:w-[72px]" title={task.title}>{label}</span></div>;
           })}
         </div>
       </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">
-        {rows.map((task, index) => (
-          <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]">
-            <span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span>
-            <span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span>
-          </div>
-        ))}
-      </div>
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#EEF1F5] pt-3 sm:grid-cols-3">{rows.map((task, index) => <div key={task.id || index} className="flex min-w-0 items-center justify-between gap-2 text-[9px]"><span className="min-w-0 truncate font-semibold text-[#596274]">T{index + 1} · {task.title}</span><span className="shrink-0 font-extrabold text-[#172033]">{task.submitted}/{task.total}</span></div>)}</div>
     </Card>
   );
 }
