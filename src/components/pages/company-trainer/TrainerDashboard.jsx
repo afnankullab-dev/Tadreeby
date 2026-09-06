@@ -277,10 +277,7 @@ function CalendarCard() {
   );
   const eventDates = new Set(EVENTS.map((event) => event.date));
   return (
-    <Card
-      title="Calendar"
-      subtitle="Your upcoming internship schedule"
-    >
+    <Card title="Calendar" subtitle="Your upcoming internship schedule">
       <div className="mt-4 flex items-center justify-between">
         <button
           type="button"
@@ -492,7 +489,7 @@ export default function TrainerDashboard() {
                 onViewTasks={() => navigate("/company/trainer/tasks")}
               />
             </div>
-            <aside className="min-w-0 self-start lg:sticky lg:top-[88px] lg:z-30">
+            <aside className="min-w-0 self-start">
               <div className="flex h-[104px] items-end gap-2 pb-5">
                 <button
                   type="button"
@@ -510,7 +507,9 @@ export default function TrainerDashboard() {
                   Announcement
                 </button>
               </div>
-              <CalendarCard />
+              <div className="lg:sticky lg:top-[88px] lg:z-30">
+                <CalendarCard />
+              </div>
             </aside>
           </div>
         </div>
