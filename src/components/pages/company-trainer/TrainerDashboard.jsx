@@ -59,44 +59,6 @@ const Card = ({ title, subtitle, action, children, className = "" }) => (
   </section>
 );
 
-function Sparkline({ points, color, fill }) {
-  const width = 112,
-    height = 30,
-    max = Math.max(...points),
-    min = Math.min(...points),
-    range = max - min || 1;
-  const coords = points.map(
-    (point, index) =>
-      `${((index / (points.length - 1)) * width).toFixed(1)},${(3 + ((max - point) / range) * 20).toFixed(1)}`,
-  );
-  const line = coords.join(" "),
-    area = `0,${height} ${line} ${width},${height}`;
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="h-[32px] w-full overflow-visible"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <polygon points={area} fill={fill} opacity="0.5" />
-      <polyline
-        points={line}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx={coords[coords.length - 1].split(",")[0]}
-        cy={coords[coords.length - 1].split(",")[1]}
-        r="2"
-        fill={color}
-      />
-    </svg>
-  );
-}
-
 const MetricCard = ({
   icon: Icon,
   label,
@@ -104,8 +66,6 @@ const MetricCard = ({
   detail,
   color,
   bg,
-  fill,
-  trend,
   onClick,
 }) => (
   <button
@@ -132,9 +92,6 @@ const MetricCard = ({
       {value}
     </p>
     <p className="mt-2 text-[9px] font-semibold text-[#7B8497]">{detail}</p>
-    <div className="-mx-1 mt-2 h-[32px]">
-      <Sparkline points={trend} color={color} fill={fill} />
-    </div>
   </button>
 );
 
@@ -323,7 +280,6 @@ function CalendarCard() {
     <Card
       title="Calendar"
       subtitle="Your upcoming internship schedule"
-      className="lg:sticky lg:top-[88px] lg:self-start z-30"
     >
       <div className="mt-4 flex items-center justify-between">
         <button
@@ -507,8 +463,6 @@ export default function TrainerDashboard() {
                   detail="Currently assigned to you"
                   color={COLORS.primary}
                   bg={COLORS.primarySoft}
-                  fill="#635BFF"
-                  trend={[20, 24, 22, 26, 24, 27, 25, 30, 28, 32]}
                   onClick={() => navigate("/company/trainer/students")}
                 />
                 <MetricCard
@@ -521,8 +475,6 @@ export default function TrainerDashboard() {
                   detail={`${stats.activeTasks ?? 5} active · ${stats.completedTasks ?? 1} completed`}
                   color={COLORS.green}
                   bg={COLORS.greenSoft}
-                  fill="#19B978"
-                  trend={[8, 12, 10, 15, 13, 17, 14, 18, 16, 20]}
                   onClick={() => navigate("/company/trainer/tasks")}
                 />
                 <MetricCard
@@ -532,8 +484,6 @@ export default function TrainerDashboard() {
                   detail="Waiting for your review"
                   color={COLORS.orange}
                   bg={COLORS.orangeSoft}
-                  fill="#FF9B4A"
-                  trend={[3, 5, 4, 7, 6, 9, 7, 10, 8, 11]}
                   onClick={() => navigate("/company/trainer/applications")}
                 />
               </div>
@@ -542,12 +492,12 @@ export default function TrainerDashboard() {
                 onViewTasks={() => navigate("/company/trainer/tasks")}
               />
             </div>
-            <aside className="min-w-0 self-start">
+            <aside className="min-w-0 self-start lg:sticky lg:top-[88px] lg:z-30">
               <div className="flex h-[104px] items-end gap-2 pb-5">
                 <button
                   type="button"
                   onClick={() => navigate("/company/trainer/tasks")}
-                  className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-[14px] bg-[#F97316] px-3 py-3 text-[10px] font-extrabold text-white shadow-[0_8px_20px_rgba(249,115,22,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(249,115,22,0.22)]"
+                  className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-br from-[#FCA83E] to-[#f59a2a] px-3 py-3 text-[10px] font-extrabold text-white shadow-[0_4px_16px_rgba(252,168,62,0.35)] transition hover:-translate-y-0.5 hover:from-[#f59a2a] hover:to-[#e8891e] hover:shadow-lg"
                 >
                   <ClipboardList size={15} />
                   Create Task
