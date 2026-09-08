@@ -8,10 +8,8 @@ import { ResetPasswordPage } from "./components/auth/ResetPasswordPage";
 import LandingPage from "./components/pages/LandingPage";
 import Dashboard from "./components/pages/Dashboard";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
-import SuperAdminDashboard from "./components/pages/superAdmin/SuperAdminDashboard";
 import Universities from "./components/pages/superAdmin/Universities";
 import Companies from "./components/pages/superAdmin/Companies";
-import StudentDashboard from "./components/pages/student/StudentDashboard";
 import StudentProfile from "./components/pages/student/StudentProfile";
 import Settings from "./components/common/pagesAssets/Settings";
 import Internships from "./components/pages/opportunities/opportunities";
@@ -21,14 +19,11 @@ import TermsAndPrivacyPage from "./components/pages/TermsAndPrivacyPage";
 import MyInternship from "./components/pages/internship/my-internship";
 import StudentChats from "./components/pages/student/studentChats";
 import Attendance from "./components/pages/student/Attendance";
-import UniversityAdminDashboard from "./components/pages/university-admin/UniversityAdminDashboard";
 import StudentTasks from "./components/pages/student/StudentTasks";
-import CompanyDashboard from "./components/pages/company-admin/companyDashboard";
 import CreateOpportunity from "./components/pages/company-admin/CreateOpportunity";
 import CreateTrainer from "./components/pages/company-admin/CreateTrainer";
 import Opportunities from "./components/pages/company-admin/Opportunities";
 import Trainers from "./components/pages/company-admin/Trainers";
-import TrainerDashboard from "./components/pages/company-trainer/TrainerDashboard";
 import TrainerStudents from "./components/pages/company-trainer/TrainerStudents";
 import TrainerTasks from "./components/pages/company-trainer/TrainerTasks";
 import TrainerCreateTask from "./components/pages/company-trainer/TrainerCreateTask";
@@ -39,13 +34,7 @@ import TrainerInternshipDetails from "./components/pages/company-trainer/Trainer
 import TrainerChats from "./components/pages/company-trainer/TrainerChats";
 import TrainerSettings from "./components/pages/company-trainer/TrainerSettings";
 
-const DASHBOARD_ROLES = [
-  "SUPER_ADMIN",
-  "STUDENT",
-  "UNIVERSITY_ADMIN",
-  "COMPANY_ADMIN",
-  "COMPANY_TRAINER",
-];
+const DASHBOARD_ROLES = ["SUPER_ADMIN", "STUDENT", "UNIVERSITY_ADMIN", "COMPANY_ADMIN", "COMPANY_TRAINER"];
 
 function App() {
   return (
@@ -61,12 +50,10 @@ function App() {
       <Route path="/privacy" element={<TermsAndPrivacyPage />} />
       <Route path="/student/chats" element={<StudentChats />} />
 
-      {/* One canonical dashboard URL for every authenticated role. */}
       <Route element={<ProtectedRoute allowedRoles={DASHBOARD_ROLES} />}>
         <Route path="/dashboard" element={<Dashboard />} />
       </Route>
 
-      {/* Legacy dashboard URLs remain valid and redirect to /dashboard. */}
       <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}>
         <Route path="/superAdmin/dashboard" element={<Navigate to="/dashboard" replace />} />
         <Route path="/superAdmin/universities" element={<Universities />} />
