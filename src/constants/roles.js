@@ -1,10 +1,9 @@
 // src/constants/roles.js
+// All authenticated roles use one canonical dashboard URL.
 export const ROLE_HOME_ROUTES = {
-  SUPER_ADMIN: "/superAdmin/dashboard",
-  STUDENT: "/student/dashboard",
-  // fill these in with your real enum values —
-  // I only have SUPER_ADMIN confirmed from your sample response
-  UNIVERSITY_ADMIN: "/universityAdmin/dashboard",
-  COMPANY_ADMIN: "/company/admin/dashboard",
-  COMPANY_TRAINER: "/company/trainer/dashboard",
+  SUPER_ADMIN: "/dashboard",
+  STUDENT: "/dashboard",
+  UNIVERSITY_ADMIN: "/dashboard",
+  COMPANY_ADMIN: "/dashboard",
+  COMPANY_TRAINER: "/dashboard",
 };
