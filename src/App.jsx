@@ -1,11 +1,12 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
 import { LoginPage } from "./components/auth/LoginPage";
 import { RegistrationPage } from "./components/auth/RegistrationPage";
 import { ForgotPasswordPage } from "./components/auth/ForgotPasswordPage";
 import { CheckEmailPage } from "./components/auth/CheckEmailPage";
 import { ResetPasswordPage } from "./components/auth/ResetPasswordPage";
 import LandingPage from "./components/pages/LandingPage";
+import Dashboard from "./components/pages/Dashboard";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import SuperAdminDashboard from "./components/pages/superAdmin/SuperAdminDashboard";
 import Universities from "./components/pages/superAdmin/Universities";
@@ -38,15 +39,85 @@ import TrainerInternshipDetails from "./components/pages/company-trainer/Trainer
 import TrainerChats from "./components/pages/company-trainer/TrainerChats";
 import TrainerSettings from "./components/pages/company-trainer/TrainerSettings";
 
+const DASHBOARD_ROLES = [
+  "SUPER_ADMIN",
+  "STUDENT",
+  "UNIVERSITY_ADMIN",
+  "COMPANY_ADMIN",
+  "COMPANY_TRAINER",
+];
+
 function App() {
-  return <Routes>
-    <Route path="/" element={<LandingPage />} /><Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegistrationPage />} /><Route path="/forgot-password" element={<ForgotPasswordPage />} /><Route path="/check-email" element={<CheckEmailPage />} /><Route path="/reset-password" element={<ResetPasswordPage />} /><Route path="/terms-privacy" element={<TermsAndPrivacyPage />} /><Route path="/terms" element={<TermsAndPrivacyPage />} /><Route path="/privacy" element={<TermsAndPrivacyPage />} /><Route path="/student/chats" element={<StudentChats />} />
-    <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}><Route path="/superAdmin/dashboard" element={<SuperAdminDashboard />} /><Route path="/superAdmin/universities" element={<Universities />} /><Route path="/superAdmin/companies" element={<Companies />} /></Route>
-    <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}><Route path="/student/dashboard" element={<StudentDashboard />} /><Route path="/student/opportunities" element={<Internships />} /><Route path="/student/opportunities/:id" element={<InternshipDetails />} /><Route path="/student/opportunity/:id" element={<InternshipDetails />} /><Route path="/student/internships" element={<Internships />} /><Route path="/student/internships/:id" element={<InternshipDetails />} /><Route path="/student/internship/:id" element={<InternshipDetails />} /><Route path="/student/my-internship" element={<MyInternship />} /><Route path="/internship/my-internship" element={<MyInternship />} /><Route path="/my/internship" element={<MyInternship />} /><Route path="/attendance" element={<Attendance />} /><Route path="/student/profile" element={<StudentProfile />} /><Route path="/student/tasks" element={<StudentTasks />} /><Route path="/settings" element={<Settings />} /></Route>
-    <Route element={<ProtectedRoute allowedRoles={["UNIVERSITY_ADMIN"]} />}><Route path="/universityAdmin/dashboard" element={<UniversityAdminDashboard />} /></Route>
-    <Route element={<ProtectedRoute allowedRoles={["COMPANY_ADMIN"]} />}><Route path="/company/admin/dashboard" element={<CompanyDashboard />} /><Route path="/company/admin/opportunities/create" element={<CreateOpportunity />} /><Route path="/company/admin/trainers" element={<Trainers />} /><Route path="/company/admin/trainers/create" element={<CreateTrainer />} /><Route path="/company/admin/opportunities" element={<Opportunities />} /></Route>
-    <Route element={<ProtectedRoute allowedRoles={["COMPANY_TRAINER"]} />}><Route path="/company/trainer/dashboard" element={<TrainerDashboard />} /><Route path="/company/trainer/internship" element={<TrainerInternshipDetails />} /><Route path="/company/trainer/students" element={<TrainerStudents />} /><Route path="/company/trainer/students/:id" element={<TrainerStudentDetails />} /><Route path="/company/trainer/tasks" element={<TrainerTasks />} /><Route path="/company/trainer/tasks/create" element={<TrainerCreateTask />} /><Route path="/company/trainer/applications" element={<TrainerApplications />} /><Route path="/company/trainer/attendance" element={<TrainerAttendance />} /><Route path="/company/trainer/chat" element={<TrainerChats />} /><Route path="/company/trainer/settings" element={<TrainerSettings />} /></Route>
-    <Route path="*" element={<NotFoundPage />} />
-  </Routes>;
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegistrationPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/check-email" element={<CheckEmailPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/terms-privacy" element={<TermsAndPrivacyPage />} />
+      <Route path="/terms" element={<TermsAndPrivacyPage />} />
+      <Route path="/privacy" element={<TermsAndPrivacyPage />} />
+      <Route path="/student/chats" element={<StudentChats />} />
+
+      {/* One canonical dashboard URL for every authenticated role. */}
+      <Route element={<ProtectedRoute allowedRoles={DASHBOARD_ROLES} />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
+
+      {/* Legacy dashboard URLs remain valid and redirect to /dashboard. */}
+      <Route element={<ProtectedRoute allowedRoles={["SUPER_ADMIN"]} />}>
+        <Route path="/superAdmin/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/superAdmin/universities" element={<Universities />} />
+        <Route path="/superAdmin/companies" element={<Companies />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}>
+        <Route path="/student/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/student/opportunities" element={<Internships />} />
+        <Route path="/student/opportunities/:id" element={<InternshipDetails />} />
+        <Route path="/student/opportunity/:id" element={<InternshipDetails />} />
+        <Route path="/student/internships" element={<Internships />} />
+        <Route path="/student/internships/:id" element={<InternshipDetails />} />
+        <Route path="/student/internship/:id" element={<InternshipDetails />} />
+        <Route path="/student/my-internship" element={<MyInternship />} />
+        <Route path="/internship/my-internship" element={<MyInternship />} />
+        <Route path="/my/internship" element={<MyInternship />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/student/profile" element={<StudentProfile />} />
+        <Route path="/student/tasks" element={<StudentTasks />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["UNIVERSITY_ADMIN"]} />}>
+        <Route path="/universityAdmin/dashboard" element={<Navigate to="/dashboard" replace />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["COMPANY_ADMIN"]} />}>
+        <Route path="/company/admin/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/company/admin/opportunities/create" element={<CreateOpportunity />} />
+        <Route path="/company/admin/trainers" element={<Trainers />} />
+        <Route path="/company/admin/trainers/create" element={<CreateTrainer />} />
+        <Route path="/company/admin/opportunities" element={<Opportunities />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["COMPANY_TRAINER"]} />}>
+        <Route path="/company/trainer/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/company/trainer/internship" element={<TrainerInternshipDetails />} />
+        <Route path="/company/trainer/students" element={<TrainerStudents />} />
+        <Route path="/company/trainer/students/:id" element={<TrainerStudentDetails />} />
+        <Route path="/company/trainer/tasks" element={<TrainerTasks />} />
+        <Route path="/company/trainer/tasks/create" element={<TrainerCreateTask />} />
+        <Route path="/company/trainer/applications" element={<TrainerApplications />} />
+        <Route path="/company/trainer/attendance" element={<TrainerAttendance />} />
+        <Route path="/company/trainer/chat" element={<TrainerChats />} />
+        <Route path="/company/trainer/settings" element={<TrainerSettings />} />
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
 }
+
 export default App;
