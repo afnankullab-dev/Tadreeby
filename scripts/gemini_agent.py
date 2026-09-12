@@ -16,7 +16,7 @@ from google.genai import types
 ROOT = Path.cwd()
 MAX_CONTEXT_CHARS = int(os.getenv("GEMINI_MAX_CONTEXT_CHARS", "180000"))
 MAX_FILE_CHARS = int(os.getenv("GEMINI_MAX_FILE_CHARS", "30000"))
-MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-pro-preview")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 TASK = os.getenv("GEMINI_TASK", "").strip()
 
 SENSITIVE_PATTERNS = [
