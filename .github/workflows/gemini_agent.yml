@@ -15,7 +15,7 @@ on:
       model:
         description: "Gemini model"
         required: true
-        default: "gemini-3.1-pro-preview"
+        default: "gemini-2.5-flash"
         type: string
 
 permissions:
