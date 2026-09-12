@@ -86,13 +86,15 @@ jobs:
         id: changes
         shell: bash
         run: |
-          if git diff --quiet -- . ':!gemini_response.txt'; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Gemini produced no changes."
-          else
+          git add -N -- . ':!gemini_response.txt' 2>/dev/null || true
+
+          if git status --porcelain -- . ':!gemini_response.txt' | grep -q .; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "Gemini produced repository changes."
             git status --short
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Gemini produced no changes."
           fi
 
       - name: Install frontend dependencies
