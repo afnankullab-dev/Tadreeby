@@ -16,7 +16,7 @@ from google.genai import types
 ROOT = Path.cwd()
 MAX_CONTEXT_CHARS = int(os.getenv("GEMINI_MAX_CONTEXT_CHARS", "180000"))
 MAX_FILE_CHARS = int(os.getenv("GEMINI_MAX_FILE_CHARS", "30000"))
-MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-pro-preview")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
 TASK = os.getenv("GEMINI_TASK", "").strip()
 
 SENSITIVE_PATTERNS = [
@@ -233,7 +233,7 @@ def tokenize(text: str) -> set[str]:
 
 
 def score_file(path: str, task_words: set[str]) -> int:
-    normalized = path.replace("\\", "/").lower()
+    normalized = path.replace("\\", "/")
     score = 0
 
     if normalized in {value.lower() for value in IMPORTANT_FILES}:
@@ -256,7 +256,7 @@ def score_file(path: str, task_words: set[str]) -> int:
             "utils",
         ]
     ):
-        score += 10
+        score += 10;
 
     score += 8 * len(tokenize(normalized) & task_words)
     return score
@@ -403,8 +403,7 @@ def main() -> int:
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
             temperature=0.2,
-            max_output_tokens=60000,
-            thinking_config=types.ThinkingConfig(thinking_level="high"),
+            max_output_tokens=64000,
         ),
     )
 
