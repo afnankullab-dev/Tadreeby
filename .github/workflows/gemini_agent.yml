@@ -74,6 +74,13 @@ jobs:
             echo "WARNING: Tadreeby SKILL.md is not present in this checkout."
           fi
 
+      - name: Restore locked external skills
+        if: hashFiles('skills-lock.json') != ''
+        env:
+          DISABLE_TELEMETRY: "1"
+        run: |
+          npx -y skills@latest experimental_install
+
       - name: Run Gemini implementation agent
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -170,7 +177,7 @@ jobs:
 
           ### What was done
           - Gemini read the Tadreeby project instructions available in the checkout.
-          - Gemini used relevant external skills from skills-lock.json when available.
+          - Gemini restored the external skills listed in skills-lock.json when available.
           - Gemini inspected task-relevant repository files.
           - ESLint passed.
           - Vite production build passed.
